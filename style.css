@@ -1,0 +1,1247 @@
+/* NEXORA — Fluid Living Gradients, Organic Frameless Typography & AI Guardian Theme */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+    --text-dark: #1e293b;
+    --text-muted: #475569;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #1e293b;
+    min-height: 100vh;
+    margin: 0;
+    overflow-x: hidden;
+    transition: background 0.8s ease-in-out;
+}
+
+h1, h2, h3, h4, .font-heading {
+    font-family: 'Outfit', sans-serif;
+}
+
+/* 1. FIRST PAGE & SECOND PAGE: Transparent to allow Astra Celestial Starfield to show */
+.bg-moving-sky-blue,
+.bg-moving-beige-taupe {
+    background: transparent !important;
+}
+
+/* Boxless Celestial Styling: remove solid box cards, harsh borders & drop shadows */
+body {
+    background-color: #06080e !important;
+    color: #f8fafc !important;
+}
+
+.card-soft,
+.monitor-card,
+.bg-slate-900,
+.bg-slate-900\/90,
+.bg-slate-900\/80,
+.bg-slate-900\/70,
+.bg-slate-900\/60,
+.bg-slate-900\/50,
+.bg-slate-900\/95,
+.bg-white,
+.bg-white\/90,
+.bg-white\/80,
+.bg-white\/70,
+.bg-white\/60,
+.bg-white\/40,
+.bg-stone-50,
+.bg-stone-100 {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    box-shadow: none !important;
+}
+
+.border,
+.border-slate-800,
+.border-slate-800\/80,
+.border-slate-700,
+.border-stone-200,
+.border-stone-300 {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.text-slate-900,
+.text-slate-800,
+.text-stone-900,
+.text-stone-800,
+.text-gray-900,
+.text-gray-800 {
+    color: #f8fafc !important;
+}
+
+.text-slate-700,
+.text-slate-600,
+.text-stone-700,
+.text-stone-600 {
+    color: #cbd5e1 !important;
+}
+
+.text-slate-500,
+.text-slate-400,
+.text-stone-500,
+.text-stone-400 {
+.glass-panel {
+    background: rgba(11, 15, 23, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.glass-panel-hover {
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-panel-hover:hover {
+    background: rgba(15, 23, 42, 0.85);
+    transform: translateY(-4px);
+    border-color: rgba(56, 189, 248, 0.4);
+    box-shadow: 0 18px 40px -10px rgba(0, 0, 0, 0.6);
+}
+
+/* AI Pulse & Waveform Animation */
+.ai-wave-glow {
+    position: relative;
+}
+.ai-wave-glow::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #0284c7, #14b8a6, #f59e0b, #0284c7);
+    background-size: 300% 300%;
+    animation: waveGlow 8s ease infinite;
+    z-index: -1;
+    opacity: 0.35;
+    filter: blur(8px);
+}
+@keyframes waveGlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Clean Easy Slider */
+input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(0, 0, 0, 0.08);
+    height: 10px;
+    border-radius: 9999px;
+    outline: none;
+    transition: all 0.2s;
+}
+
+input[type=range]:hover {
+    background: rgba(0, 0, 0, 0.14);
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #0284c7;
+    border: 3px solid #ffffff;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.45);
+    transition: transform 0.15s ease, background-color 0.15s;
+}
+
+input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.18);
+    background: #0369a1;
+}
+
+input[type=range]::-moz-range-thumb {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #0284c7;
+    border: 3px solid #ffffff;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.45);
+}
+
+/* Soundwave bars for voice dictation */
+.sound-bar {
+    animation: soundwave 1.2s ease-in-out infinite alternate;
+}
+@keyframes soundwave {
+    0% { height: 4px; }
+    100% { height: 26px; }
+}
+.sound-bar:nth-child(1) { animation-delay: 0.1s; }
+.sound-bar:nth-child(2) { animation-delay: 0.3s; }
+.sound-bar:nth-child(3) { animation-delay: 0.2s; }
+.sound-bar:nth-child(4) { animation-delay: 0.5s; }
+.sound-bar:nth-child(5) { animation-delay: 0.4s; }
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.5);
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.8);
+}
+
+/* Floating AI Chatbot "NEX" Styles */
+#nex-bot-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+}
+
+#nex-toggle-btn {
+    animation: nexCircleDrift 4s ease-in-out infinite alternate;
+    transform-origin: center center;
+}
+@keyframes nexCircleDrift {
+    0% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-5px) scale(1.02); }
+    100% { transform: translateY(0px) scale(1); }
+}
+
+.nex-avatar-pulse {
+    animation: nexFloat 3.5s ease-in-out infinite alternate;
+}
+@keyframes nexFloat {
+    0% { transform: translateY(0px) scale(1); }
+    100% { transform: translateY(-8px) scale(1.03); }
+}
+
+/* Translucent Celestial Glass Chat Window */
+.nex-chat-window {
+    background: rgba(8, 12, 24, 0.82) !important;
+    backdrop-filter: blur(28px) saturate(190%);
+    -webkit-backdrop-filter: blur(28px) saturate(190%);
+    border: 1px solid rgba(56, 189, 248, 0.35) !important;
+    box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.75), 0 0 40px rgba(56, 189, 248, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+    transform-origin: bottom right;
+}
+
+/* Chat Modal Open / Close Spring Animations */
+.nex-chat-anim-in {
+    animation: nexChatOpen 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+    will-change: transform, opacity;
+}
+
+.nex-chat-anim-out {
+    animation: nexChatClose 0.22s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+    will-change: transform, opacity;
+}
+
+@keyframes nexChatOpen {
+    0% {
+        opacity: 0;
+        transform: scale(0.18) translate(50px, 50px);
+        filter: blur(10px);
+    }
+    60% {
+        opacity: 1;
+        filter: blur(0px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translate(0, 0);
+        filter: blur(0px);
+    }
+}
+
+@keyframes nexChatClose {
+    0% {
+        opacity: 1;
+        transform: scale(1) translate(0, 0);
+        filter: blur(0px);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.18) translate(50px, 50px);
+        filter: blur(8px);
+    }
+}
+
+/* Small Circle Pop-in when chat closes */
+.nex-btn-pop-in {
+    animation: nexBtnPopIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+}
+@keyframes nexBtnPopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.2) rotate(-35deg);
+    }
+    70% {
+        opacity: 1;
+        transform: scale(1.18) rotate(6deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+.nex-btn-pop-out {
+    animation: nexBtnPopOut 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+@keyframes nexBtnPopOut {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.2);
+    }
+}
+
+/* Breathing Circle for Anxiety Relief */
+.breath-circle {
+    animation: breatheCycle 8s ease-in-out infinite;
+}
+@keyframes breatheCycle {
+    0%, 100% { transform: scale(0.85); opacity: 0.6; }
+    50% { transform: scale(1.25); opacity: 1; }
+}
+
+/* Interactive Image Frames with Glowing Edge */
+.graphic-hero {
+    box-shadow: 0 20px 45px -15px rgba(14, 165, 233, 0.25);
+    border: 2px solid rgba(255, 255, 255, 0.7);
+}
+
+/* ==========================================================================
+   NEXORA Monitor — Administrator & Caseworker Dashboard Styling
+   (Celestial Seamless Glass Theme: Transparent Cards, Moving Nebula Stars)
+   ========================================================================== */
+#counselor-view {
+    background: transparent !important;
+    color: #f1f5f9;
+}
+
+.monitor-sidebar {
+    background: rgba(6, 8, 14, 0.45) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.monitor-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.65rem 0.9rem;
+    border-radius: 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #94a3b8;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: left;
+    background: transparent;
+    border: 1px solid transparent;
+}
+
+.monitor-nav-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.monitor-nav-btn.active {
+    color: #38bdf8;
+    background: rgba(14, 165, 233, 0.14);
+    border-color: rgba(56, 189, 248, 0.3);
+    box-shadow: 0 0 15px -3px rgba(56, 189, 248, 0.25);
+}
+
+.monitor-card {
+    background: rgba(255, 255, 255, 0.02) !important;
+    border: 1px solid rgba(255, 255, 255, 0.07) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 1rem;
+    box-shadow: none !important;
+}
+
+.monitor-card-glow {
+    box-shadow: none !important;
+}
+
+/* 3 Core Portals Top Navigation Pills */
+.portal-nav-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.95rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border: 1px solid transparent;
+}
+
+.portal-nav-pill.active {
+    background: linear-gradient(135deg, #0284c7, #0f766e);
+    color: #ffffff;
+    box-shadow: 0 4px 14px -2px rgba(14, 165, 233, 0.4);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.portal-nav-pill:not(.active) {
+    background: rgba(15, 23, 42, 0.7);
+    color: #cbd5e1;
+    border-color: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.portal-nav-pill:not(.active):hover {
+    background: rgba(30, 41, 59, 0.9);
+    color: #f8fafc;
+    border-color: rgba(56, 189, 248, 0.35);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Multi-Channel Simulation Pills */
+.channel-pill {
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.channel-pill.active {
+    background: #0284c7;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+    border-color: #38bdf8;
+}
+
+.channel-pill:not(.active) {
+    background: rgba(255, 255, 255, 0.3);
+    color: #475569;
+}
+
+.channel-pill:not(.active):hover {
+    background: rgba(255, 255, 255, 0.6);
+    color: #0f172a;
+}
+
+/* Explainable AI Progress Bars */
+.xai-bar-bg {
+    height: 6px;
+    border-radius: 9999px;
+    background: rgba(148, 163, 184, 0.2);
+    overflow: hidden;
+}
+
+.xai-bar-fill {
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* District Heatmap Card Gradients (Transparent Glass with Delicate Tint) */
+.heatmap-card-critical {
+    background: rgba(244, 63, 94, 0.06) !important;
+    border: 1px solid rgba(244, 63, 94, 0.35) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.heatmap-card-elevated {
+    background: rgba(245, 158, 11, 0.06) !important;
+    border: 1px solid rgba(245, 158, 11, 0.35) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.heatmap-card-moderate {
+    background: rgba(20, 184, 166, 0.06) !important;
+    border: 1px solid rgba(20, 184, 166, 0.35) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.heatmap-card-low {
+    background: rgba(16, 185, 129, 0.06) !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* Comprehensive Boxless Styling for Counsellor & Administration pages:
+   All card containers, metrics, queues, and tables are transparent glass so stars & gradients flow through */
+#counselor-view .monitor-card,
+#counselor-view [class*="bg-slate-900"],
+#counselor-view [class*="bg-slate-950"],
+#counselor-view [class*="bg-slate-800"],
+#counselor-view [class*="bg-rose-950"],
+#counselor-view [class*="bg-amber-950"],
+#counselor-view [class*="bg-teal-950"],
+#counselor-view .bg-ai-midnight,
+#counselor-view .glass-copilot-card {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    box-shadow: none !important;
+}
+
+#case-table-body tr {
+    background-color: transparent !important;
+    border-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+#case-table-body tr:hover {
+    background-color: rgba(56, 189, 248, 0.08) !important;
+}
+
+#counselor-view thead {
+    background-color: rgba(6, 8, 14, 0.5) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* Role Selection Cards (Page 2) */
+.role-card {
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.role-card:hover {
+    transform: translateY(-6px);
+}
+
+/* ==========================================================================
+   PREMIUM "AI COPILOT" UI/UX DESIGN SYSTEM (Midnight Slate #0B0F17 & Neon Trim)
+   ========================================================================== */
+.bg-ai-midnight {
+    background-color: #0B0F17;
+}
+
+/* Glassmorphism AI Card with Subtle Neon Glow */
+.glass-copilot-card {
+    background: rgba(11, 15, 23, 0.82);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(56, 189, 248, 0.18);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 15px 0 rgba(56, 189, 248, 0.05);
+}
+
+.glass-copilot-card-emerald {
+    background: rgba(11, 15, 23, 0.82);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 15px 0 rgba(16, 185, 129, 0.06);
+}
+
+.glass-copilot-card-rose {
+    background: rgba(11, 15, 23, 0.82);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(244, 63, 94, 0.25);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 15px 0 rgba(244, 63, 94, 0.08);
+}
+
+/* Pulsating Beacon Lights */
+.beacon-dot-emerald {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: pulseEmerald 2s infinite;
+}
+@keyframes pulseEmerald {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.beacon-dot-rose {
+    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7);
+    animation: pulseRose 1.5s infinite;
+}
+@keyframes pulseRose {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(244, 63, 94, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+}
+
+.beacon-dot-cyan {
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7);
+    animation: pulseCyan 2s infinite;
+}
+@keyframes pulseCyan {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(56, 189, 248, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+}
+
+/* Floating Real-Time Telemetry Chips */
+.telemetry-chip {
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.6875rem;
+    font-family: monospace;
+    color: #38bdf8;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.telemetry-chip-emerald {
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #34d399;
+}
+
+.telemetry-chip-rose {
+    border-color: rgba(244, 63, 94, 0.3);
+    color: #fb7185;
+}
+
+/* Interactive Dynamic Slider with Color Shifts */
+.ai-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, #10b981 0%, #38bdf8 50%, #f43f5e 100%);
+    outline: none;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+}
+.ai-slider:hover {
+    opacity: 1;
+}
+.ai-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 3px solid #0284c7;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.ai-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 16px rgba(56, 189, 248, 1);
+}
+
+/* Multi-Segment Radial Gauge Glow */
+.radial-gauge-glow {
+    filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.4));
+}
+
+/* Interactive Milestone Tooltip Card */
+.milestone-hover-card {
+    background: #0f172a;
+    border: 1px solid #38bdf8;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 12px rgba(56, 189, 248, 0.2);
+}
+
+/* ==========================================================================
+   FRIEND REPOSITORY INTEGRATION: DOCTOR CONSULTATION, CHAT & TIMELINE STYLES
+   ========================================================================== */
+/* Doctor Specialist Cards */
+.doctor-card {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+.doctor-card:hover {
+    border-color: rgba(56, 189, 248, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+.doctor-card.selected {
+    border-color: #0284c7;
+    background: rgba(8, 47, 73, 0.5);
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
+}
+
+/* Consultation Mode Switcher Pills */
+.consult-type-pill {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0.75rem;
+    padding: 0.65rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.consult-type-pill:hover {
+    color: #ffffff;
+    border-color: rgba(56, 189, 248, 0.4);
+}
+.consult-type-pill.active {
+    background: rgba(14, 165, 233, 0.18);
+    border-color: #38bdf8;
+    color: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+}
+
+/* Chronological Case Milestone Timeline */
+.timeline-track {
+    position: relative;
+    border-left: 2px solid rgba(56, 189, 248, 0.25);
+    margin-left: 1rem;
+    padding-left: 1.5rem;
+    padding-bottom: 0.5rem;
+}
+.timeline-node {
+    position: absolute;
+    left: -1.05rem;
+    top: 0.2rem;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    border: 2px solid #0B0F17;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Conversational Check-in Mode Bubbles */
+.checkin-bubble-bot {
+    background: rgba(30, 41, 59, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem 1rem 1rem 0.2rem;
+    color: #f1f5f9;
+    padding: 0.75rem 1rem;
+    font-size: 0.8125rem;
+    max-width: 85%;
+}
+.checkin-bubble-user {
+    background: linear-gradient(135deg, #0284c7, #0d9488);
+    border-radius: 1rem 1rem 0.2rem 1rem;
+    color: #ffffff;
+    padding: 0.75rem 1rem;
+    font-size: 0.8125rem;
+    max-width: 85%;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+}
+
+/* Quick Response Emoji Chips */
+.quick-response-chip {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 9999px;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.quick-response-chip:hover {
+    background: #0284c7;
+    color: #ffffff;
+    border-color: #38bdf8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.35);
+}
+
+/* Emotional Tone Metric Cards */
+.emotional-tone-card {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.75rem;
+    padding: 0.65rem;
+    text-align: center;
+}
+
+/* ==========================================================================
+   DYNAMIC WHOLE-PAGE ANIMATIONS & TACTILE INTERACTION PHYSICS
+   "Make doing anything feel alive with lots of responsive animations"
+   ========================================================================== */
+
+/* 1. Global Tactile Spring Physics for All Buttons & Clickables */
+button,
+a,
+[role="button"],
+.cursor-pointer,
+.monitor-nav-btn,
+.quick-response-chip,
+.consult-type-pill,
+.portal-nav-pill,
+.triage-card,
+.action-btn {
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                background-color 0.2s ease,
+                border-color 0.2s ease,
+                color 0.2s ease,
+                filter 0.2s ease !important;
+    will-change: transform;
+}
+
+/* Hover Lift with subtle elevation */
+button:hover:not(:disabled),
+.cursor-pointer:hover:not(:disabled),
+a:hover {
+    transform: translateY(-2px);
+}
+
+/* Energetic Spring-down on click, pops back on release */
+button:active:not(:disabled),
+.cursor-pointer:active:not(:disabled),
+a:active,
+.monitor-nav-btn:active,
+.portal-nav-pill:active {
+    transform: scale(0.93) translateY(1px) !important;
+    transition-duration: 0.06s !important;
+}
+
+/* 2. Celestial Click Sparks & Expanding Starlight Wave */
+.celestial-click-spark {
+    position: fixed;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffffff 15%, #38bdf8 65%, rgba(192, 132, 252, 0) 100%);
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(0.6);
+    animation: celestialClickSparkFade 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    z-index: 99999;
+    mix-blend-mode: screen;
+}
+
+.celestial-click-wave {
+    position: fixed;
+    border-radius: 50%;
+    border: 2px solid rgba(56, 189, 248, 0.7);
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.5), inset 0 0 12px rgba(168, 85, 247, 0.35);
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(0.2);
+    animation: celestialClickWaveExpand 0.52s cubic-bezier(0.14, 0.85, 0.35, 1) forwards;
+    z-index: 99998;
+    mix-blend-mode: screen;
+}
+
+@keyframes celestialClickSparkFade {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0.6);
+    }
+    50% {
+        opacity: 0.9;
+        transform: translate(-50%, -50%) scale(2.0);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(2.8);
+    }
+}
+
+@keyframes celestialClickWaveExpand {
+    0% {
+        width: 10px;
+        height: 10px;
+        opacity: 0.95;
+        transform: translate(-50%, -50%) scale(0.2);
+    }
+    100% {
+        width: 85px;
+        height: 85px;
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.6);
+    }
+}
+
+/* 3. Smooth Tab & Section Transition Animations */
+.tab-pane-enter {
+    animation: tabSlideFadeIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes tabSlideFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(12px) scale(0.996);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.view-fade-slide {
+    animation: viewSlideFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes viewSlideFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 4. Case Details Slide Drawer Animation */
+#case-details.flex {
+    animation: drawerSlideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes drawerSlideInRight {
+    0% {
+        opacity: 0;
+        transform: translateX(28px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* 5. Chat Bubble Staggered Spring Pop-In */
+.chat-bubble-anim {
+    animation: chatBubblePopIn 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    transform-origin: bottom left;
+}
+@keyframes chatBubblePopIn {
+    0% {
+        opacity: 0;
+        transform: translateY(12px) scale(0.92);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* 6. Emergency SOS Distress Aura Pulse */
+.sos-pulse-ring {
+    animation: sosPulseRing 2.2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
+@keyframes sosPulseRing {
+    0% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.75); }
+    70% { transform: scale(1.02); box-shadow: 0 0 0 16px rgba(239, 68, 68, 0); }
+    100% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* 7. Alive Breathing Badges & Status Indicators */
+.badge-alive {
+    animation: badgeBreathing 2.6s ease-in-out infinite alternate;
+}
+@keyframes badgeBreathing {
+    0% { transform: scale(1); filter: drop-shadow(0 0 2px currentColor); }
+    100% { transform: scale(1.06); filter: drop-shadow(0 0 8px currentColor); }
+}
+
+/* 8. Interactive Card Floating Glow on Hover */
+.monitor-card,
+.glass-copilot-card,
+#counselor-view .bg-slate-900\/60,
+#counselor-view .bg-slate-950\/70 {
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.25s ease !important;
+}
+
+.monitor-card:hover,
+.glass-copilot-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(56, 189, 248, 0.4) !important;
+    box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.6), 0 0 24px rgba(56, 189, 248, 0.18) !important;
+}
+
+/* 9. Interactive Case Rows Lively Slide Highlight */
+#counselor-view tbody tr {
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+                background-color 0.18s ease,
+                box-shadow 0.18s ease;
+    cursor: pointer;
+}
+#counselor-view tbody tr:hover {
+    transform: translateX(4px);
+    background: rgba(56, 189, 248, 0.08) !important;
+    box-shadow: inset 3px 0 0 #38bdf8;
+}
+
+/* 10. Shimmering Glow Accent for Headers & Action Badges */
+.shimmer-text {
+    background: linear-gradient(90deg, #93c5fd 0%, #ffffff 50%, #93c5fd 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmerMove 3.2s linear infinite;
+}
+@keyframes shimmerMove {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* ==========================================================================
+   ADVANCED CLINICAL & GOVERNANCE VISUALIZATION STYLES
+   (Sankey Medical Flow, Gantt Swimlane, Multi-Axis & Radar Spider Charts)
+   ========================================================================== */
+
+/* 1. Sankey Diagram Ribbons & Flow Nodes */
+.sankey-ribbon {
+    transition: opacity 0.25s ease, stroke-width 0.25s ease, filter 0.25s ease;
+    cursor: pointer;
+    will-change: opacity, filter;
+}
+.sankey-ribbon:hover {
+    opacity: 0.95 !important;
+    filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.7));
+}
+
+.sankey-node {
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
+    cursor: pointer;
+}
+.sankey-node:hover {
+    transform: scale(1.02);
+    filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.5));
+}
+
+/* Flow particle pulse animation along sankey paths */
+@keyframes sankeyFlowGlow {
+    0%, 100% { stroke-opacity: 0.35; }
+    50% { stroke-opacity: 0.85; }
+}
+.sankey-flow-active {
+    animation: sankeyFlowGlow 2.5s ease-in-out infinite;
+}
+
+/* 2. Multi-Agency Gantt Swimlane Timeline */
+.swimlane-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.swimlane-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.85rem;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+.swimlane-row:hover {
+    background: rgba(15, 23, 42, 0.75);
+    border-color: rgba(56, 189, 248, 0.3);
+}
+
+.swimlane-track-bg {
+    position: relative;
+    height: 32px;
+    background: rgba(2, 6, 23, 0.6);
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    overflow: hidden;
+}
+
+.swimlane-bar {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    border-radius: 0.4rem;
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    font-family: monospace;
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), filter 0.18s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.swimlane-bar:hover {
+    transform: translateY(-1px) scale(1.02);
+    filter: brightness(1.2);
+    z-index: 10;
+}
+
+/* Shimmer on active swimlane bars */
+.swimlane-bar.active-bar {
+    background-size: 200% 100%;
+    animation: swimlaneBarSheen 3s linear infinite;
+}
+@keyframes swimlaneBarSheen {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* 3. Dynamic Tooltips for Clinical Visualizations */
+.clinical-chart-tooltip {
+    position: absolute;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    background: rgba(11, 15, 23, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    color: #f1f5f9;
+    font-size: 0.72rem;
+    pointer-events: none;
+    z-index: 9999;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), 0 0 15px rgba(56, 189, 248, 0.2);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* =========================================================================
+   NEXORA Sentient AI Status Orb Keyframes & Dynamic Micro-Animations
+   - Calm: ~12 breaths per minute (5s cycle: 60/5 = 12 bpm)
+   - Active: Accelerated synapse pulse (~1.2s cycle) with expanding ripples
+   - Alert: Urgent elevated warning pulse (~1.8s cycle)
+   ========================================================================= */
+
+@keyframes orbBreatheCalm {
+    0%, 100% {
+        transform: scale(0.95);
+        filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.5));
+    }
+    50% {
+        transform: scale(1.06);
+        filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.85));
+    }
+}
+
+@keyframes orbPulseActive {
+    0%, 100% {
+        transform: scale(0.96);
+        filter: drop-shadow(0 0 14px rgba(56, 189, 248, 0.7));
+    }
+    50% {
+        transform: scale(1.12);
+        filter: drop-shadow(0 0 26px rgba(96, 165, 250, 0.95));
+    }
+}
+
+@keyframes orbPulseAlert {
+    0%, 100% {
+        transform: scale(0.94);
+        filter: drop-shadow(0 0 12px rgba(244, 63, 94, 0.65));
+    }
+    50% {
+        transform: scale(1.14);
+        filter: drop-shadow(0 0 28px rgba(245, 158, 11, 0.9));
+    }
+}
+
+@keyframes orbRippleWaveCalm {
+    0% {
+        transform: scale(0.9);
+        opacity: 0.6;
+        border-width: 1.5px;
+        border-style: solid;
+    }
+    70% {
+        transform: scale(1.6);
+        opacity: 0.15;
+        border-width: 1px;
+        border-style: solid;
+    }
+    100% {
+        transform: scale(2.0);
+        opacity: 0;
+        border-width: 0.5px;
+        border-style: solid;
+    }
+}
+
+@keyframes orbRippleWaveActive {
+    0% {
+        transform: scale(0.9);
+        opacity: 0.85;
+        border-width: 2px;
+        border-style: solid;
+    }
+    60% {
+        transform: scale(1.7);
+        opacity: 0.25;
+        border-width: 1px;
+        border-style: solid;
+    }
+    100% {
+        transform: scale(2.2);
+        opacity: 0;
+        border-width: 0.5px;
+        border-style: solid;
+    }
+}
+
+@keyframes orbRippleWaveAlert {
+    0% {
+        transform: scale(0.9);
+        opacity: 0.8;
+        border-width: 2px;
+        border-style: solid;
+    }
+    50% {
+        transform: scale(1.65);
+        opacity: 0.3;
+        border-width: 1px;
+        border-style: solid;
+    }
+    100% {
+        transform: scale(2.1);
+        opacity: 0;
+        border-width: 0.5px;
+        border-style: solid;
+    }
+}
+
+.nexora-orb-calm {
+    animation: orbBreatheCalm 5s ease-in-out infinite;
+    transform-origin: center;
+}
+
+.nexora-orb-active {
+    animation: orbPulseActive 1.2s ease-in-out infinite;
+    transform-origin: center;
+}
+
+.nexora-orb-alert {
+    animation: orbPulseAlert 1.8s ease-in-out infinite;
+    transform-origin: center;
+}
+
+.nexora-ripple-calm {
+    animation: orbRippleWaveCalm 5s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+
+.nexora-ripple-active {
+    animation: orbRippleWaveActive 1.4s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+
+.nexora-ripple-alert {
+    animation: orbRippleWaveAlert 1.8s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
