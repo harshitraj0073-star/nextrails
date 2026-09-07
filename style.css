@@ -2233,3 +2233,666 @@ input[type="checkbox"] {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ============================================================================
+   ARCHITECTURAL DIRECTIVE: GLOBAL LAYOUT UNIFICATION
+   Two-column shell + Unified Header Architecture
+   ============================================================================ */
+
+/* Disable old fixed nav that causes overlaps */
+#sentient-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 0.5rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(3, 4, 10, 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  flex-wrap: nowrap;
+  gap: 1rem;
+  min-height: 56px;
+}
+
+#sentient-nav > * {
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+#sentient-nav > .nav-brand {
+  flex-shrink: 0;
+}
+
+#sentient-nav > #nav-center {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+#sentient-nav .nav-brand-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Global two-column shell: sidebar + main content */
+.portal-shell {
+  display: flex;
+  width: 100%;
+  min-height: calc(100vh - 56px);
+  max-height: calc(100vh - 56px);
+  overflow: hidden;
+  position: relative;
+}
+
+.portal-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  height: 100%;
+  overflow-y: auto;
+  background: rgba(3, 4, 10, 0.75);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.portal-main {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Unified Header Architecture (2-row) */
+.app-unified-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  flex-shrink: 0;
+  background: rgba(1, 3, 8, 0.95);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.app-unified-header .row-1 {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.25rem 2rem;
+  font-size: 11px;
+  background: rgba(1, 3, 8, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  height: 32px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.app-unified-header .row-1 .helplines {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.app-unified-header .row-1 .helplines > * + * {
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  padding-left: 0.75rem;
+}
+
+.app-unified-header .row-2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 2rem;
+  background: rgba(1, 3, 8, 0.75);
+  height: 64px;
+  gap: 1rem;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.app-unified-header .row-2 .title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.app-unified-header .row-2 .title-block h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-unified-header .row-2 .title-block p {
+  font-size: 0.75rem;
+  color: rgb(148, 163, 184);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-unified-header .row-2 .actions-block {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 60;
+}
+
+.app-unified-header .row-2 button {
+  pointer-events: auto !important;
+  flex-shrink: 0;
+  cursor: pointer !important;
+}
+
+.app-unified-header .row-2 .btn-switch-role {
+  border: 1px solid #22d3ee !important;
+  color: #67e8f9 !important;
+  background: rgba(34, 211, 238, 0.08) !important;
+  font-weight: 600;
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  position: relative;
+  z-index: 60;
+}
+
+.app-unified-header .row-2 .btn-switch-role:hover {
+  background: rgba(34, 211, 238, 0.18) !important;
+  color: white !important;
+}
+
+.app-unified-header .row-2 .btn-quick-exit {
+  background: rgba(251, 191, 36, 0.1) !important;
+  color: #fcd34d !important;
+  border: 1px solid rgba(251, 191, 36, 0.4) !important;
+  font-weight: 600;
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+}
+
+.app-unified-header .row-2 .btn-quick-exit:hover {
+  background: rgba(251, 191, 36, 0.2) !important;
+}
+
+/* Mobile responsive header */
+@media (max-width: 1280px) {
+  .app-unified-header .row-1 .helplines > *:nth-child(n+2) {
+    display: none;
+  }
+  .app-unified-header .row-2 {
+    padding: 0.75rem 1rem;
+  }
+  .app-unified-header .row-2 .title-block p {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-unified-header .row-1 {
+    padding: 0.25rem 0.75rem;
+  }
+  .app-unified-header .row-2 .title-block {
+    flex: 0 1 auto;
+  }
+  .portal-sidebar {
+    width: 220px;
+  }
+}
+
+@media (max-width: 700px) {
+  .portal-sidebar {
+    display: none;
+  }
+  .app-unified-header .row-1 .helplines > *:nth-child(n+3) {
+    display: none;
+  }
+}
+
+/* PORTAL: Role Selection Gateway */
+.role-gateway {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 4rem 1.5rem 6rem;
+  position: relative;
+  z-index: 10;
+}
+
+.role-gateway .core-orb-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.role-gateway .role-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 960px;
+  margin-top: 2rem;
+}
+
+/* PORTAL: Patient/Survivor view */
+.patient-shell {
+  min-height: 100vh;
+  padding: 1.5rem 1rem 6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  z-index: 10;
+  max-width: 1024px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.patient-shell form,
+.patient-shell .sentient-card {
+  width: 100%;
+}
+
+.patient-shell .form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .patient-shell .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+.patient-shell .return-cta {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+  padding-bottom: 2rem;
+}
+
+/* PORTAL: Counselor view */
+.counselor-shell {
+  display: flex;
+  width: 100%;
+  min-height: calc(100vh - 56px);
+  max-height: calc(100vh - 56px);
+  overflow: hidden;
+}
+
+.counselor-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  height: 100%;
+  overflow-y: auto;
+  background: rgba(3, 4, 10, 0.75);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.counselor-main {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.counselor-content {
+  padding: 1.5rem 2rem 3rem;
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-width: 1024px) {
+  .counselor-sidebar {
+    width: 220px;
+  }
+  .counselor-content {
+    padding: 1.5rem 1rem 3rem;
+  }
+}
+
+@media (max-width: 700px) {
+  .counselor-shell {
+    flex-direction: column;
+    max-height: none;
+    min-height: auto;
+  }
+  .counselor-sidebar {
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* Slide-over Dossier Drawer (z-index 70, no nav overlap) */
+.dossier-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(95vw, 1200px);
+  z-index: 70;
+  background: rgba(3, 4, 10, 0.98);
+  backdrop-filter: blur(20px);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 350ms ease-out;
+  overflow: hidden;
+}
+
+.dossier-drawer.open {
+  transform: translateX(0);
+}
+
+.dossier-drawer .dossier-drawer-header {
+  flex-shrink: 0;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(3, 4, 10, 0.95);
+  z-index: 80;
+}
+
+.dossier-drawer .dossier-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.dossier-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms;
+}
+
+.dossier-drawer-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* PORTAL: Admin view */
+.admin-district-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .admin-district-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-district-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.admin-chart-area {
+  min-height: 320px;
+  height: 100%;
+  position: relative;
+  padding: 1rem 0;
+}
+
+.admin-chart-area canvas {
+  max-height: 100%;
+}
+
+/* All interactive buttons: ensure clickable */
+button, a[href], .btn {
+  pointer-events: auto;
+  position: relative;
+}
+
+/* Fix absolute-positioned overlays to not block clicks */
+.atmosphere-base,
+.atmosphere-volumetric,
+.atmosphere-grid,
+.atmosphere-noise,
+.atmosphere-depth {
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+#sentient-canvas,
+.sentient-core-container,
+.cursor-spotlight {
+  pointer-events: none !important;
+}
+
+/* Ensure navbar is not in absolute position */
+.sentient-nav,
+#sentient-nav {
+  position: sticky !important;
+  top: 0 !important;
+}
+
+/* Sticky dossier header respects new layout */
+#patient-dossier-view {
+  position: relative;
+  height: 100%;
+  overflow-y: auto;
+}
+
+#patient-dossier-view .sticky {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Grid utility for forms */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .form-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+/* Ensure no element uses position: absolute for layout */
+[class*="absolute"][style*="left:"] {
+  position: relative !important;
+  left: auto !important;
+}
+
+/* ============================================================================
+   FINAL LAYOUT SAFETY OVERRIDES
+   ============================================================================ */
+
+/* Ensure all portals have proper section containment */
+#intro-view,
+#role-select-view,
+#victim-view,
+#counselor-view {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+}
+
+/* Fix intro view's centered content */
+#intro-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1.5rem 6rem;
+  min-height: 100vh;
+}
+
+/* Patient view full height scroll */
+#victim-view {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#victim-view > header.app-unified-header {
+  flex-shrink: 0;
+}
+
+#victim-view > main.patient-shell {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Counselor: ensure no overlap with sticky header */
+#counselor-view {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  min-height: calc(100vh - 56px);
+  position: relative;
+  z-index: 10;
+}
+
+#counselor-view > .counselor-sidebar {
+  flex-shrink: 0;
+  width: 260px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  position: sticky;
+  top: 56px;
+  background: rgba(3, 4, 10, 0.85);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1.5rem 1rem;
+}
+
+#counselor-view > .counselor-main {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  height: calc(100vh - 56px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+#counselor-view .tab-pane {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.5rem 2rem 3rem;
+}
+
+@media (max-width: 1024px) {
+  #counselor-view > .counselor-sidebar {
+    width: 220px;
+  }
+  #counselor-view .tab-pane {
+    padding: 1.5rem 1rem 3rem;
+  }
+}
+
+@media (max-width: 700px) {
+  #counselor-view {
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100vh - 56px);
+  }
+  #counselor-view > .counselor-sidebar {
+    width: 100%;
+    height: auto;
+    max-height: 220px;
+    position: relative;
+    top: 0;
+  }
+  #counselor-view > .counselor-main {
+    height: auto;
+  }
+}
+
+/* Action buttons: ensure pointer-events everywhere */
+.app-unified-header button,
+.counselor-sidebar button,
+button[onclick] {
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 5;
+}
+
+/* Dossier: full-width below header, scrollable */
+#patient-dossier-view {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+#patient-dossier-view .sticky {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Form grid defaults to avoid stretch */
+form .form-grid-2,
+form .grid {
+  align-items: start;
+}
+
+/* Hide horizontal overflow on small screens */
+body, #app-body {
+  overflow-x: hidden;
+}
+
+/* Make sure no element bleeds outside parent */
+.sentient-card,
+.counselor-content,
+.tab-pane {
+  max-width: 100%;
+  overflow-x: hidden;
+}
