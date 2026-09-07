@@ -2663,6 +2663,11 @@ function handleVictimSubmit(e) {
     document.getElementById('victim-form-container')?.classList.add('hidden');
     document.getElementById('victim-success')?.classList.remove('hidden');
 
+    // SIH 26094: Render Dynamic Distress Score gauge + Longitudinal Trend
+    if (typeof renderVictimDDSAndTrend === 'function') {
+        renderVictimDDSAndTrend();
+    }
+
     // Isolated Survivor Sparkline Rendering
     setTimeout(() => {
         renderVictimSparkline(caseId);
@@ -2696,23 +2701,27 @@ function handleVictimProfileSubmit(e) {
     const phoneInput = document.getElementById('victim-intake-phone');
     const workInput = document.getElementById('victim-intake-work');
     const stressInput = document.getElementById('victim-intake-stress');
+    const milestoneInput = document.getElementById('caseMilestone');
 
     const name = (nameInput && nameInput.value.trim()) || currentVictimProfile.name || "Priya Sharma";
     const phone = (phoneInput && phoneInput.value.trim()) || currentVictimProfile.phone || "98765 43210";
     const work = (workInput && workInput.value.trim()) || currentVictimProfile.work || "Teacher";
     const stress = (stressInput && stressInput.value) || currentVictimProfile.stress || "Moderate";
+    const milestone = (milestoneInput && milestoneInput.value) || currentVictimProfile.milestone || "FIR / Complaint Registered";
 
     currentVictimProfile = {
         name,
         phone,
         work,
         stress,
+        milestone,
         token: currentVictimProfile.token || `CASE-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`
     };
 
     // Transition from Profile Intake to 10-Question Chat Container
     document.getElementById('victim-profile-intake')?.classList.add('hidden');
     document.getElementById('victim-chat-container')?.classList.remove('hidden');
+    document.getElementById('voice-checkin-section')?.classList.remove('hidden');
     document.getElementById('victim-success')?.classList.add('hidden');
 
     // Initialize 10-question check-in with a warm, personalized greeting
@@ -2875,9 +2884,11 @@ function renderEscalationsAndAlerts() {
                 return `
                     <div class="p-4 rounded-xl bg-slate-900/90 border border-rose-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 flex-wrap">
                                 <span class="font-bold text-rose-300 font-mono">${escapeHtml(c.victimName || c.caseId)}</span>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300">DDS: ${latest ? latest.ddiScore : 90} (HIGH THREAT)</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300">DDS: ${latest ? latest.ddiScore : 90}</span>
+                                ${isHighThreatCase(c) ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-600 text-white animate-pulse">⚠ THREAT</span>` : ''}
+                                ${c.milestone ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">⚖ ${escapeHtml(c.milestone)}</span>` : ''}
                             </div>
                             <p class="text-slate-300 mt-1">${escapeHtml(c.latestJournal || (latest && latest.notes) || "Severe distress reported during daily check-in.")}</p>
                             <span class="text-[10px] text-slate-400 font-mono">Token: ${escapeHtml(c.caseId)} • Ph: ${escapeHtml(c.phone || 'Confidential')}</span>
@@ -4346,6 +4357,520 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+
+// ============================================================================
+// SIH 26094: MULTI-MODAL VOICE CHECK-IN & SENTIMENT TELEMETRY ENGINE
+// ============================================================================
+let isVoiceRecording = false;
+let voiceAnimId = null;
+let voiceTimerId = null;
+let voiceTimerStart = 0;
+
+function toggleVoiceRecording() {
+    if (typeof playHapticBeep === 'function') playHapticBeep(isVoiceRecording ? 400 : 820, 'sine', 0.1);
+    isVoiceRecording = !isVoiceRecording;
+
+    const btn = document.getElementById('voice-record-btn');
+    const icon = document.getElementById('voice-record-icon');
+    const status = document.getElementById('voice-status-label');
+    const timer = document.getElementById('voice-timer');
+
+    if (isVoiceRecording) {
+        if (btn) {
+            btn.innerHTML = '<span id="voice-record-icon" class="text-rose-400 animate-pulse">●</span> Stop Recording';
+            btn.classList.add('bg-rose-600/30', 'border-rose-400/50');
+            btn.classList.remove('bg-violet-dim', 'text-violet-300');
+        }
+        if (status) status.textContent = '🎙️ Recording... Speak about your feelings';
+        if (timer) {
+            timer.classList.remove('hidden');
+            timer.textContent = '00:00';
+        }
+        voiceTimerStart = Date.now();
+        voiceTimerId = setInterval(updateVoiceTimer, 1000);
+        startVoiceWaveformAnimation();
+    } else {
+        stopVoiceRecording();
+    }
+}
+
+function updateVoiceTimer() {
+    const elapsed = Math.floor((Date.now() - voiceTimerStart) / 1000);
+    const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+    const secs = String(elapsed % 60).padStart(2, '0');
+    const timer = document.getElementById('voice-timer');
+    if (timer) timer.textContent = `${mins}:${secs}`;
+
+    if (elapsed >= 60) {
+        stopVoiceRecording();
+        alert('Voice check-in limited to 60 seconds for data protection. Analysis will proceed.');
+    }
+}
+
+function stopVoiceRecording() {
+    isVoiceRecording = false;
+    if (voiceTimerId) clearInterval(voiceTimerId);
+    if (voiceAnimId) cancelAnimationFrame(voiceAnimId);
+
+    const btn = document.getElementById('voice-record-btn');
+    const status = document.getElementById('voice-status-label');
+    const timer = document.getElementById('voice-timer');
+
+    if (btn) {
+        btn.innerHTML = '<span id="voice-record-icon">●</span> Record Voice';
+        btn.classList.remove('bg-rose-600/30', 'border-rose-400/50');
+        btn.classList.add('bg-violet-dim', 'text-violet-300');
+    }
+    if (status) status.textContent = '✅ Voice recorded. Tap "Simulate Analysis" to process.';
+    if (timer) timer.classList.add('hidden');
+
+    // Trigger sentiment analysis after recording
+    setTimeout(() => {
+        computeSentimentTelemetry();
+    }, 500);
+}
+
+function startVoiceWaveformAnimation() {
+    const canvas = document.getElementById('voice-waveform-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+
+    function draw() {
+        if (!isVoiceRecording) return;
+        ctx.clearRect(0, 0, W, H);
+
+        const barCount = 48;
+        const barW = W / barCount - 1;
+        for (let i = 0; i < barCount; i++) {
+            const h = Math.random() * H * 0.9 + 2;
+            const x = i * (barW + 1);
+            const y = (H - h) / 2;
+            const grad = ctx.createLinearGradient(0, y, 0, y + h);
+            grad.addColorStop(0, '#a78bfa');
+            grad.addColorStop(0.5, '#22d3ee');
+            grad.addColorStop(1, '#a78bfa');
+            ctx.fillStyle = grad;
+            ctx.fillRect(x, y, barW, h);
+        }
+
+        voiceAnimId = requestAnimationFrame(draw);
+    }
+    draw();
+}
+
+function simulateVoiceCheckin() {
+    if (typeof playHapticBeep === 'function') playHapticBeep(740, 'triangle', 0.1);
+
+    const status = document.getElementById('voice-status-label');
+    if (status) status.textContent = '🔬 Running acoustic analysis & NLP sentiment computation...';
+    if (document.getElementById('voice-checkin-section')) {
+        document.getElementById('voice-checkin-section').classList.remove('hidden');
+    }
+
+    // Animate the canvas with a nice waveform
+    const canvas = document.getElementById('voice-waveform-canvas');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width, H = canvas.height;
+        let frame = 0;
+
+        function animate() {
+            ctx.clearRect(0, 0, W, H);
+            const barCount = 48;
+            const barW = W / barCount - 1;
+            for (let i = 0; i < barCount; i++) {
+                const t = (i + frame) * 0.15;
+                const h = Math.abs(Math.sin(t) + Math.sin(t * 1.7) * 0.5) * H * 0.7 + H * 0.05;
+                const x = i * (barW + 1);
+                const y = (H - h) / 2;
+                const grad = ctx.createLinearGradient(0, y, 0, y + h);
+                grad.addColorStop(0, '#22d3ee');
+                grad.addColorStop(0.5, '#a78bfa');
+                grad.addColorStop(1, '#22d3ee');
+                ctx.fillStyle = grad;
+                ctx.fillRect(x, y, barW, h);
+            }
+            frame++;
+            if (frame < 120) {
+                voiceAnimId = requestAnimationFrame(animate);
+            }
+        }
+        if (voiceAnimId) cancelAnimationFrame(voiceAnimId);
+        animate();
+    }
+
+    // Compute sentiment after animation delay
+    setTimeout(computeSentimentTelemetry, 1800);
+}
+
+function computeSentimentTelemetry() {
+    // SIH 26094: Compute multi-dimensional sentiment from NLP + acoustic simulation
+    const latestCheckIn = window.currentVictimCheckIn;
+    const allText = latestCheckIn ? Object.values(latestCheckIn).join(' ').toLowerCase() : '';
+
+    // Polarity: positive vs negative sentiment
+    const positiveWords = ['hope', 'better', 'good', 'support', 'safe', 'family', 'friend', 'grateful', 'recovering'];
+    const negativeWords = ['threat', 'fear', 'scared', 'hopeless', 'alone', 'panic', 'intimidation', 'crying', 'danger'];
+
+    let positiveCount = positiveWords.filter(w => allText.includes(w)).length;
+    let negativeCount = negativeWords.filter(w => allText.includes(w)).length;
+
+    // Base simulation values with some randomness for demo
+    const polarity = Math.min(100, Math.max(5, 50 + (positiveCount - negativeCount) * 12 + (Math.random() - 0.5) * 20));
+    const cognitive = Math.min(100, Math.max(5, 35 + negativeCount * 10 + Math.random() * 25));
+    const vocalStress = Math.min(100, Math.max(5, 25 + negativeCount * 15 + Math.random() * 20));
+    const anxiety = Math.min(100, Math.max(5, 40 + negativeCount * 12 + Math.random() * 15));
+    const supportSignal = Math.min(100, Math.max(5, 60 + positiveCount * 10 - negativeCount * 5 + Math.random() * 15));
+    const behavioralFlag = Math.min(100, Math.max(0, Math.abs(polarity - 50) + Math.random() * 20));
+
+    const sentimentData = {
+        polarity, cognitive, vocalStress, anxiety, supportSignal, behavioralFlag
+    };
+
+    // Update UI
+    updateSentimentTag('polarity', polarity,
+        polarity > 65 ? { label: 'Positive', color: 'mint' } :
+        polarity < 35 ? { label: 'Negative', color: 'rose' } :
+        { label: 'Neutral', color: 'amber' });
+
+    updateSentimentTag('cognitive', cognitive,
+        cognitive > 70 ? { label: 'HIGH', color: 'rose' } :
+        cognitive > 45 ? { label: 'Moderate', color: 'amber' } :
+        { label: 'Low', color: 'mint' });
+
+    updateSentimentTag('vocal', vocalStress,
+        vocalStress > 65 ? { label: 'HIGH STRESS', color: 'rose' } :
+        vocalStress > 40 ? { label: 'Elevated', color: 'amber' } :
+        { label: 'Normal', color: 'mint' });
+
+    updateSentimentTag('anxiety', anxiety,
+        anxiety > 65 ? { label: 'HIGH', color: 'rose' } :
+        anxiety > 40 ? { label: 'Moderate', color: 'amber' } :
+        { label: 'Low', color: 'mint' });
+
+    updateSentimentTag('support', supportSignal,
+        supportSignal > 65 ? { label: 'Strong', color: 'mint' } :
+        supportSignal > 40 ? { label: 'Partial', color: 'amber' } :
+        { label: 'Isolated', color: 'rose' });
+
+    updateSentimentTag('behavior', behavioralFlag,
+        behavioralFlag > 60 ? { label: 'Anomalous', color: 'rose' } :
+        behavioralFlag > 30 ? { label: 'Unusual', color: 'amber' } :
+        { label: 'Normal', color: 'mint' });
+
+    // Show container
+    const container = document.getElementById('sentiment-tags-container');
+    if (container) {
+        container.classList.remove('hidden');
+    }
+
+    if (typeof playHapticBeep === 'function') playHapticBeep(520, 'sine', 0.1);
+
+    return sentimentData;
+}
+
+function updateSentimentTag(key, value, meta) {
+    const bar = document.getElementById(`sent-${key}-bar`);
+    const val = document.getElementById(`sent-${key}-val`);
+    const badge = document.getElementById(`sent-${key}-badge`);
+
+    const rounded = Math.round(value);
+    if (bar) {
+        bar.style.width = rounded + '%';
+        if (meta.color === 'rose') {
+            bar.className = 'h-full bg-gradient-to-r from-rose-400 to-rose-600 rounded-full transition-all duration-700';
+        } else if (meta.color === 'amber') {
+            bar.className = 'h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all duration-700';
+        } else {
+            bar.className = 'h-full bg-gradient-to-r from-mint-400 to-emerald-500 rounded-full transition-all duration-700';
+        }
+    }
+    if (val) val.textContent = rounded + '%';
+    if (badge) {
+        badge.textContent = meta.label;
+        if (meta.color === 'rose') {
+            badge.className = 'text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300';
+        } else if (meta.color === 'amber') {
+            badge.className = 'text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300';
+        } else {
+            badge.className = 'text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300';
+        }
+    }
+}
+
+// ============================================================================
+// SIH 26094: DYNAMIC DISTRESS SCORE + LONGITUDINAL TREND (Patient View)
+// ============================================================================
+function computeDynamicDistressScore(checkInData) {
+    // DDS = Survey (50%) + NLP Sentiment (30%) + Acoustic/Voice (20%)
+    // Returns 0-100 score
+    if (!checkInData) return 50;
+
+    const surveyScore = checkInData.ddiScore || checkInData.surveyScore || 50;
+    const nlpScore = checkInData.nlpScore || 50;
+    const acousticScore = checkInData.acousticScore || checkInData.voiceScore || 50;
+
+    const total = Math.round(surveyScore * 0.5 + nlpScore * 0.3 + acousticScore * 0.2);
+    return Math.min(100, Math.max(0, total));
+}
+
+function renderVictimDDSAndTrend() {
+    // Get all check-in scores for this victim
+    const victimData = window.currentVictimCheckIn;
+    const historyScores = (victimData && victimData.checkIns) ? victimData.checkIns.map(ci => ci.ddiScore || 50) : generateSampleDDSHistory();
+
+    const latest = historyScores.length > 0 ? historyScores[historyScores.length - 1] : 50;
+
+    // Update gauge
+    const circle = document.getElementById('victim-dds-circle');
+    const scoreEl = document.getElementById('victim-dds-score');
+    const labelEl = document.getElementById('victim-dds-label');
+
+    if (circle) {
+        const circumference = 264;
+        const offset = circumference - (circumference * latest / 100);
+        circle.style.strokeDashoffset = offset;
+        const color = latest >= 70 ? '#ff6b6b' : latest >= 40 ? '#facc15' : '#34d399';
+        circle.setAttribute('stroke', color);
+    }
+    if (scoreEl) {
+        scoreEl.textContent = latest;
+        const color = latest >= 70 ? 'text-rose-300' : latest >= 40 ? 'text-amber-300' : 'text-mint-300';
+        scoreEl.className = `text-3xl font-black font-mono ${color}`;
+    }
+    if (labelEl) {
+        labelEl.textContent = latest >= 70 ? 'CRITICAL' : latest >= 40 ? 'ELEVATED' : 'STABLE';
+        labelEl.className = `text-[10px] font-mono mt-1 ${latest >= 70 ? 'text-rose-300' : latest >= 40 ? 'text-amber-300' : 'text-mint-300'}`;
+    }
+
+    // Render longitudinal trend chart
+    const canvas = document.getElementById('victim-longitudinal-canvas');
+    if (canvas) renderLongitudinalTrend(canvas, historyScores);
+}
+
+function renderLongitudinalTrend(canvas, scores) {
+    if (!canvas) return;
+    const parent = canvas.parentElement;
+    if (parent) {
+        canvas.width = parent.clientWidth;
+        canvas.height = parent.clientHeight;
+    }
+
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    if (scores.length < 2) scores = generateSampleDDSHistory();
+
+    const padding = 20;
+    const chartW = W - padding * 2;
+    const chartH = H - padding * 2;
+
+    // Grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = padding + (chartH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(W - padding, y);
+        ctx.stroke();
+    }
+
+    // Y axis labels
+    ctx.fillStyle = '#64748b';
+    ctx.font = '9px JetBrains Mono';
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= 4; i++) {
+        const y = padding + (chartH / 4) * i;
+        ctx.fillText((100 - i * 25) + '', padding - 3, y + 3);
+    }
+
+    // Build points
+    const pts = scores.map((s, i) => ({
+        x: padding + (chartW * i) / Math.max(scores.length - 1, 1),
+        y: padding + chartH - (s / 100) * chartH
+    }));
+
+    // Fill area
+    ctx.beginPath();
+    pts.forEach((p, i) => {
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+    });
+    ctx.lineTo(pts[pts.length - 1].x, padding + chartH);
+    ctx.lineTo(padding, padding + chartH);
+    ctx.closePath();
+    const grad = ctx.createLinearGradient(0, padding, 0, padding + chartH);
+    grad.addColorStop(0, 'rgba(34, 211, 238, 0.3)');
+    grad.addColorStop(1, 'rgba(34, 211, 238, 0.02)');
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Line
+    ctx.beginPath();
+    pts.forEach((p, i) => {
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+    });
+    ctx.strokeStyle = '#22d3ee';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Points
+    pts.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(34, 211, 238, 0.2)';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#67e8f9';
+        ctx.fill();
+    });
+}
+
+function generateSampleDDSHistory() {
+    const base = 55;
+    const scores = [];
+    for (let i = 0; i < 7; i++) {
+        const trend = i < 3 ? -8 : 5;
+        scores.push(Math.min(100, Math.max(5, base + trend * i + Math.random() * 12 - 6)));
+    }
+    return scores;
+}
+
+function generateLegalBriefFromMilestone(caseId) {
+    const c = cases.find(x => x.caseId === caseId);
+    if (!c) return 'Case not found.';
+
+    const milestone = c.milestone || 'Pre-FIR / Complaint Stage';
+    const latest = (c.checkIns && c.checkIns.length > 0) ? c.checkIns[c.checkIns.length - 1] : null;
+    const dds = latest ? computeDynamicDistressScore(latest) : 50;
+
+    return `DLSA VULNERABILITY & PROTECTION ASSESSMENT\n` +
+        `Case: ${c.caseId}\nVictim: ${c.victimName}\n` +
+        `Legal Stage: ${milestone}\n` +
+        `Current DDS: ${dds}/100\n` +
+        `Threat Level: ${c.threatLevel || 'MODERATE'}\n\n` +
+        `Summary: Victim is at stage "${milestone}" of SC/ST atrocity legal proceedings. ` +
+        `Dynamic Distress Score of ${dds} indicates ${dds >= 70 ? 'critical' : dds >= 40 ? 'elevated' : 'manageable'} psychological burden correlating with legal delays. ` +
+        `Immediate NHAA 14566 support and DLSA intervention recommended.`;
+}
+
+// ============================================================================
+// SIH 26094: NHAA 14566 OUTREACH & MULTI-CHANNEL DISPATCH FUNCTIONS
+// ============================================================================
+function triggerNHAAOutreach() {
+    if (typeof playHapticBeep === 'function') playHapticBeep(880, 'square', 0.12);
+    alert('🚨 NHAA 14566 BROADCAST INITIATED\n\nAutomated outreach dispatched via:\n• IVRS: 14566 emergency call chain\n• SMS: Daily check-in reminders\n• WhatsApp: Tele-MANAS bot outreach\n• Crisis: DLSA + WCD immediate notification\n\nAll district coordinators have been alerted.');
+}
+
+function dispatchStatewideAlert() {
+    if (typeof playHapticBeep === 'function') playHapticBeep(960, 'square', 0.15);
+    alert('📡 STATEWIDE CRISIS BROADCAST DISPATCHED\n\nMaharashtra District Coordinators notified:\n• Pune (6 critical threats)\n• Nagpur (4 elevated risk)\n• Thane (8 monitoring)\n• All 36 districts on alert\n\n112 emergency services on standby.');
+}
+
+// ============================================================================
+// SIH 26094: ENHANCED CASE MILESTONE INTEGRATION
+// ============================================================================
+function getMilestoneLabel(stage) {
+    const labels = {
+        'Pre-FIR / Complaint Stage': { color: 'amber', icon: '📝' },
+        'FIR / Complaint Registered': { color: 'amber', icon: '📋' },
+        'Investigation Phase': { color: 'amber', icon: '🔍' },
+        'Charge Sheet Scrutiny': { color: 'amber', icon: '⚖️' },
+        'Cross-Examination Scheduled': { color: 'rose', icon: '🎤' },
+        'Special Court Hearing': { color: 'rose', icon: '🏛️' },
+        'Trial Concluded': { color: 'cyan', icon: '✅' },
+        'Compensation Disbursement Pending': { color: 'amber', icon: '💰' },
+        'Rehabilitation Phase': { color: 'mint', icon: '🌿' },
+        'Case Closed / Resolved': { color: 'mint', icon: '🏠' }
+    };
+    return labels[stage] || { color: 'slate', icon: '📌' };
+}
+
+function renderMilestoneBadge(stage) {
+    const info = getMilestoneLabel(stage);
+    const colorMap = {
+        rose: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+        amber: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+        cyan: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+        mint: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+        slate: 'bg-slate-500/20 text-slate-300 border-slate-500/30'
+    };
+    return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${colorMap[info.color]}">${info.icon} ${stage}</span>`;
+}
+
+// Add milestone to check-in submission
+function buildEnhancedCheckInPayload() {
+    const milestone = document.getElementById('caseMilestone');
+    const notes = document.getElementById('checkin-freeform-input');
+
+    return {
+        milestone: milestone ? milestone.value : 'Daily Check-in',
+        notes: notes ? notes.value : '',
+        timestamp: Date.now(),
+        channel: window.currentChannel || 'web'
+    };
+}
+
+// ============================================================================
+// SIH 26094: THREAT/INTIMIDATION ESCALATION — ENHANCED TRIAGE SORTING
+// ============================================================================
+function isHighThreatCase(c) {
+    const latest = c.checkIns && c.checkIns.length > 0 ? c.checkIns[c.checkIns.length - 1] : null;
+    const isCritical = (latest && latest.riskLevel === 'HIGH') || c.threatLevel === 'HIGH';
+    const hasThreatKeyword = (c.reportedSymptoms || '').toLowerCase().includes('threat') ||
+        (c.latestJournal || '').toLowerCase().includes('threat') ||
+        (c.latestJournal || '').toLowerCase().includes('intimidat');
+    const hasExtremeKeyword = (c.reportedSymptoms || '').toLowerCase().includes('kill') ||
+        (c.reportedSymptoms || '').toLowerCase().includes('suicide') ||
+        (c.latestJournal || '').toLowerCase().includes('suicide');
+    return isCritical || hasThreatKeyword || hasExtremeKeyword;
+}
+
+function sortCasesByThreatAndDistress(a, b) {
+    const aHigh = isHighThreatCase(a) ? 2 : (a.checkIns && a.checkIns.length > 0 && a.checkIns[a.checkIns.length - 1].riskLevel === 'HIGH') ? 1 : 0;
+    const bHigh = isHighThreatCase(b) ? 2 : (b.checkIns && b.checkIns.length > 0 && b.checkIns[b.checkIns.length - 1].riskLevel === 'HIGH') ? 1 : 0;
+    if (aHigh !== bHigh) return bHigh - aHigh;
+
+    const aScore = a.checkIns && a.checkIns.length > 0 ? (a.checkIns[a.checkIns.length - 1].ddiScore || 0) : 0;
+    const bScore = b.checkIns && b.checkIns.length > 0 ? (b.checkIns[b.checkIns.length - 1].ddiScore || 0) : 0;
+    return bScore - aScore;
+}
+
+// Enhanced alert rendering with threat tags
+function renderThreatTag(c) {
+    const hasThreat = (c.reportedSymptoms || '').toLowerCase().includes('threat') ||
+        (c.latestJournal || '').toLowerCase().includes('threat');
+    const hasIntimidation = (c.reportedSymptoms || '').toLowerCase().includes('intimidat') ||
+        (c.latestJournal || '').toLowerCase().includes('intimidat');
+    const hasExtreme = (c.reportedSymptoms || '').toLowerCase().includes('kill') ||
+        (c.reportedSymptoms || '').toLowerCase().includes('suicide');
+
+    if (hasExtreme) {
+        return `<span class="ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-600 text-white border border-rose-400 animate-pulse">⚠ CRITICAL</span>`;
+    }
+    if (hasThreat) {
+        return `<span class="ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">🔴 THREAT</span>`;
+    }
+    if (hasIntimidation) {
+        return `<span class="ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">⚡ INTIMIDATION</span>`;
+    }
+    return '';
+}
+
+// Inject threat tags into escalation cards
+const originalRenderEscalations = renderEscalationsAndAlerts;
+renderEscalationsAndAlerts = function() {
+    originalRenderEscalations.call(this);
+    // Enhance with threat tags
+    document.querySelectorAll('[data-case-card]').forEach && (() => {
+        // Already handled in the HTML template rendering
+    })();
+};
 
 // ============================================================================
 // NEXORA Monitor — Administrator Menu Tab Switcher & AI Assistant

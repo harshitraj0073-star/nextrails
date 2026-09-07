@@ -64,12 +64,16 @@
 
         <div class="flex items-center gap-4">
             <div id="header-helplines" class="hidden sm:flex items-center gap-3 text-xs">
-                <a href="tel:112" class="text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1.5">
+                <a href="tel:14566" class="text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                    NHAA 14566
+                </a>
+                <span class="text-slate-600">|</span>
+                <a href="tel:112" class="text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1">
                     Emergency: 112
                 </a>
                 <span class="text-slate-600">|</span>
-                <span class="text-slate-400">Mental Health: <strong class="text-white">14416</strong></span>
+                <span class="text-slate-400">Tele-MANAS: <strong class="text-white">14416</strong></span>
             </div>
 
             <div class="flex items-center gap-2">
@@ -416,6 +420,9 @@
 
                 <!-- Quick Actions -->
                 <div class="flex flex-wrap gap-3">
+                    <a href="tel:14566" class="btn btn-sm bg-rose-dim text-rose-300 border border-rose-400/30">
+                        📞 NHAA: 14566
+                    </a>
                     <a href="tel:14416" class="btn btn-sm bg-mint-dim text-mint-300 border border-mint-400/20">
                         📞 Tele-MANAS: 14416
                     </a>
@@ -463,6 +470,29 @@
                                 <option value="High / Severe">High / Severe</option>
                             </select>
                         </div>
+                    </div>
+
+                    <!-- SIH 26094: Legal Case Milestone Tracker (MoSJE) -->
+                    <div class="border-t border-white/5 pt-4">
+                        <label class="text-micro text-slate-400 block mb-2 flex items-center gap-2">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-amber-400">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                            Current Legal Case Stage (MoSJE / SC-ST Atrocity Act)
+                        </label>
+                        <select id="caseMilestone" class="sentient-input sentient-select">
+                            <option value="Pre-FIR / Complaint Stage">Pre-FIR / Complaint Stage</option>
+                            <option value="FIR / Complaint Registered">FIR / Complaint Registered</option>
+                            <option value="Investigation Phase">Investigation Phase</option>
+                            <option value="Charge Sheet Scrutiny">Charge Sheet Scrutiny</option>
+                            <option value="Cross-Examination Scheduled">Cross-Examination Scheduled</option>
+                            <option value="Special Court Hearing">Special Court Hearing</option>
+                            <option value="Trial Concluded">Trial Concluded</option>
+                            <option value="Compensation Disbursement Pending">Compensation Disbursement Pending</option>
+                            <option value="Rehabilitation Phase">Rehabilitation Phase</option>
+                            <option value="Case Closed / Resolved">Case Closed / Resolved</option>
+                        </select>
+                        <p class="text-[10px] text-slate-500 mt-1">Helps correlate legal delays and intimidation patterns with psychological distress (SIH 26094 mandate)</p>
                     </div>
 
                     <button type="submit" class="btn btn-mint btn-lg w-full sm:w-auto">
@@ -521,6 +551,115 @@
                 </div>
             </div>
 
+            <!-- SIH 26094: Multi-Modal Voice Check-in & Sentiment Telemetry -->
+            <div id="voice-checkin-section" class="hidden sentient-card overflow-hidden mb-8">
+                <div class="p-4 border-b border-white/5 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-violet-dim border border-violet-400/30 flex items-center justify-center text-xl">
+                            🎙️
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-white">Voice Check-In</h4>
+                            <p class="text-xs text-slate-400">Multi-modal audio analysis with sentiment telemetry</p>
+                        </div>
+                    </div>
+                    <span class="text-xs font-mono bg-violet-dim text-violet-300 px-3 py-1 rounded-full">SIH 26094</span>
+                </div>
+
+                <!-- Voice Waveform Canvas -->
+                <div class="relative p-4 bg-slate-950/30">
+                    <canvas id="voice-waveform-canvas" width="800" height="80" class="w-full h-20 rounded-lg bg-slate-900/50"></canvas>
+                    <div class="flex items-center justify-between mt-3">
+                        <span id="voice-status-label" class="text-xs text-slate-400 font-mono">🎙️ Tap to start voice check-in</span>
+                        <span id="voice-timer" class="text-xs font-mono text-cyan-400 hidden">00:00</span>
+                    </div>
+                    <!-- Waveform bars will be drawn by JS -->
+                </div>
+
+                <!-- Voice Controls -->
+                <div class="p-4 flex items-center gap-3">
+                    <button id="voice-record-btn" onclick="toggleVoiceRecording()" class="btn btn-sm bg-violet-dim text-violet-300 border border-violet-400/30 hover:bg-violet-900/50 flex items-center gap-2">
+                        <span id="voice-record-icon">●</span> Record Voice
+                    </button>
+                    <button id="voice-simulate-btn" onclick="simulateVoiceCheckin()" class="btn btn-sm btn-secondary text-xs">
+                        🔬 Simulate Analysis
+                    </button>
+                    <span class="text-xs text-slate-500 ml-auto">or type in the chat above</span>
+                </div>
+
+                <!-- Sentiment Analysis Tags -->
+                <div id="sentiment-tags-container" class="hidden p-4 border-t border-white/5 space-y-3">
+                    <h5 class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-cyan-400">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                        </svg>
+                        Sentiment Telemetry Breakdown (SIH 26094)
+                    </h5>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <div class="p-2 rounded-lg bg-slate-900/50 border border-slate-700/30">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] text-slate-400 font-mono">Sentiment Polarity</span>
+                                <span id="sent-polarity-badge" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">--</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div id="sent-polarity-bar" class="h-full bg-gradient-to-r from-rose-400 to-emerald-400 rounded-full transition-all duration-500" style="width: 50%"></div>
+                            </div>
+                            <span id="sent-polarity-val" class="text-xs font-mono text-white mt-1 block">50%</span>
+                        </div>
+                        <div class="p-2 rounded-lg bg-slate-900/50 border border-slate-700/30">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] text-slate-400 font-mono">Cognitive Agitation</span>
+                                <span id="sent-cognitive-badge" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">--</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div id="sent-cognitive-bar" class="h-full bg-gradient-to-r from-amber-400 to-rose-400 rounded-full transition-all duration-500" style="width: 30%"></div>
+                            </div>
+                            <span id="sent-cognitive-val" class="text-xs font-mono text-white mt-1 block">30%</span>
+                        </div>
+                        <div class="p-2 rounded-lg bg-slate-900/50 border border-slate-700/30">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] text-slate-400 font-mono">Vocal Stress</span>
+                                <span id="sent-vocal-badge" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300">--</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div id="sent-vocal-bar" class="h-full bg-gradient-to-r from-amber-400 to-rose-500 rounded-full transition-all duration-500" style="width: 20%"></div>
+                            </div>
+                            <span id="sent-vocal-val" class="text-xs font-mono text-white mt-1 block">20%</span>
+                        </div>
+                        <div class="p-2 rounded-lg bg-slate-900/50 border border-slate-700/30">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] text-slate-400 font-mono">Anxiety</span>
+                                <span id="sent-anxiety-badge" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">--</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div id="sent-anxiety-bar" class="h-full bg-amber-400 rounded-full transition-all duration-500" style="width: 40%"></div>
+                            </div>
+                            <span id="sent-anxiety-val" class="text-xs font-mono text-white mt-1 block">40%</span>
+                        </div>
+                        <div class="p-2 rounded-lg bg-slate-900/50 border border-slate-700/30">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] text-slate-400 font-mono">Support Signal</span>
+                                <span id="sent-support-badge" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-mint-500/20 text-mint-300">--</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div id="sent-support-bar" class="h-full bg-mint-400 rounded-full transition-all duration-500" style="width: 60%"></div>
+                            </div>
+                            <span id="sent-support-val" class="text-xs font-mono text-white mt-1 block">60%</span>
+                        </div>
+                        <div class="p-2 rounded-lg bg-slate-900/50 border border-slate-700/30">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] text-slate-400 font-mono">Behavioral Flag</span>
+                                <span id="sent-behavior-badge" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300">--</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div id="sent-behavior-bar" class="h-full bg-sky-400 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <span id="sent-behavior-val" class="text-xs font-mono text-white mt-1 block">Normal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Success State -->
             <div id="victim-success" class="hidden sentient-card p-8 text-center">
                 <div class="w-20 h-20 rounded-full bg-mint-dim border border-mint-400/30 flex items-center justify-center text-4xl mx-auto mb-6 animate-entrance">
@@ -530,6 +669,38 @@
                 <p class="text-body text-slate-400 mb-6 max-w-md mx-auto">
                     Thank you for sharing. Your responses have been securely transmitted to your care team.
                 </p>
+
+                <!-- SIH 26094: Dynamic Distress Score Gauge + Longitudinal Trend -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-left">
+                    <div class="sentient-card p-4 md:col-span-1 flex flex-col items-center">
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Dynamic Distress Score</h4>
+                        <div class="relative w-36 h-36">
+                            <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90">
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8"/>
+                                <circle id="victim-dds-circle" cx="50" cy="50" r="42" fill="none" stroke="#22d3ee" stroke-width="8" stroke-dasharray="264" stroke-dashoffset="132" stroke-linecap="round" class="transition-all duration-1000"/>
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span id="victim-dds-score" class="text-3xl font-black text-white font-mono">--</span>
+                                <span id="victim-dds-label" class="text-[10px] font-mono text-cyan-300 mt-1">CALIBRATING</span>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-500 text-center mt-3">0-100 index computed from text + voice + behavioral signals (SIH 26094)</p>
+                    </div>
+                    <div class="sentient-card p-4 md:col-span-2">
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-cyan-400">
+                                <polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/>
+                            </svg>
+                            Longitudinal Trend (Last 7 Check-Ins)
+                        </h4>
+                        <div class="relative h-32">
+                            <canvas id="victim-longitudinal-canvas" class="w-full h-full"></canvas>
+                        </div>
+                        <div class="flex items-center justify-between text-[10px] font-mono text-slate-500 mt-2">
+                            <span>W-6</span><span>W-5</span><span>W-4</span><span>W-3</span><span>W-2</span><span>W-1</span><span class="text-cyan-300">Now</span>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="flex flex-wrap justify-center gap-3">
                     <button onclick="retakeVictimCheckIn()" class="btn btn-secondary">Update Check-In</button>
@@ -875,6 +1046,187 @@
                     <h4 class="font-bold text-white mb-4">Distress Trends</h4>
                     <div class="h-64 bg-slate-900/50 rounded-xl flex items-center justify-center">
                         <canvas id="compensationRecoveryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- SIH 26094: Admin/Ministry Telemetry Suite -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- NHAA 14566 Resolution Rate -->
+                    <div class="sentient-card p-5">
+                        <h4 class="font-bold text-white mb-3 flex items-center gap-2 text-sm">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-rose-400">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.33 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>
+                            </svg>
+                            NHAA 14566 Resolution Rate
+                        </h4>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-slate-400">Pune</span>
+                                <div class="flex-1 mx-3 h-2 bg-slate-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-rose-400 to-mint-400" style="width: 87%"></div></div>
+                                <span class="text-mint-300 font-mono font-bold">87%</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-slate-400">Nagpur</span>
+                                <div class="flex-1 mx-3 h-2 bg-slate-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-rose-400 to-mint-400" style="width: 92%"></div></div>
+                                <span class="text-mint-300 font-mono font-bold">92%</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-slate-400">Thane</span>
+                                <div class="flex-1 mx-3 h-2 bg-slate-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-rose-400 to-mint-400" style="width: 78%"></div></div>
+                                <span class="text-mint-300 font-mono font-bold">78%</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-slate-400">Nashik</span>
+                                <div class="flex-1 mx-3 h-2 bg-slate-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-rose-400 to-mint-400" style="width: 95%"></div></div>
+                                <span class="text-mint-300 font-mono font-bold">95%</span>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between text-xs">
+                            <span class="text-slate-400">Statewide Avg</span>
+                            <span class="text-mint-300 font-bold font-mono">88%</span>
+                        </div>
+                    </div>
+
+                    <!-- Regional Heatmap -->
+                    <div class="sentient-card p-5">
+                        <h4 class="font-bold text-white mb-3 flex items-center gap-2 text-sm">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-amber-400">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            Maharashtra Regional Distress Heatmap
+                        </h4>
+                        <div class="grid grid-cols-4 gap-1.5">
+                            <div class="aspect-square rounded bg-rose-600/80 flex flex-col items-center justify-center text-[9px] font-mono text-white">
+                                <span class="font-bold">PUN</span><span>74</span>
+                            </div>
+                            <div class="aspect-square rounded bg-rose-500/70 flex flex-col items-center justify-center text-[9px] font-mono text-white">
+                                <span class="font-bold">MUM</span><span>71</span>
+                            </div>
+                            <div class="aspect-square rounded bg-amber-500/70 flex flex-col items-center justify-center text-[9px] font-mono text-white">
+                                <span class="font-bold">NAG</span><span>68</span>
+                            </div>
+                            <div class="aspect-square rounded bg-amber-500/60 flex flex-col items-center justify-center text-[9px] font-mono text-white">
+                                <span class="font-bold">NAN</span><span>62</span>
+                            </div>
+                            <div class="aspect-square rounded bg-amber-400/60 flex flex-col items-center justify-center text-[9px] font-mono text-slate-800">
+                                <span class="font-bold">AKL</span><span>55</span>
+                            </div>
+                            <div class="aspect-square rounded bg-amber-400/50 flex flex-col items-center justify-center text-[9px] font-mono text-slate-800">
+                                <span class="font-bold">KOL</span><span>52</span>
+                            </div>
+                            <div class="aspect-square rounded bg-cyan-400/50 flex flex-col items-center justify-center text-[9px] font-mono text-slate-800">
+                                <span class="font-bold">SAT</span><span>48</span>
+                            </div>
+                            <div class="aspect-square rounded bg-mint-400/50 flex flex-col items-center justify-center text-[9px] font-mono text-slate-800">
+                                <span class="font-bold">RAT</span><span>42</span>
+                            </div>
+                            <div class="aspect-square rounded bg-mint-400/40 flex flex-col items-center justify-center text-[9px] font-mono text-slate-800">
+                                <span class="font-bold">JAL</span><span>40</span>
+                            </div>
+                            <div class="aspect-square rounded bg-mint-500/40 flex flex-col items-center justify-center text-[9px] font-mono text-slate-800">
+                                <span class="font-bold">LAT</span><span>38</span>
+                            </div>
+                            <div class="aspect-square rounded bg-mint-500/30 flex flex-col items-center justify-center text-[9px] font-mono text-slate-800">
+                                <span class="font-bold">SIN</span><span>34</span>
+                            </div>
+                            <div class="aspect-square rounded bg-mint-500/30 flex flex-col items-center justify-center text-[9px] font-mono text-slate-800">
+                                <span class="font-bold">PAR</span><span>32</span>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center justify-between text-[10px] font-mono text-slate-500">
+                            <span>Low (30)</span>
+                            <div class="flex h-2 flex-1 mx-2 rounded-full overflow-hidden">
+                                <div class="flex-1 bg-mint-500/40"></div>
+                                <div class="flex-1 bg-mint-400/50"></div>
+                                <div class="flex-1 bg-cyan-400/50"></div>
+                                <div class="flex-1 bg-amber-400/50"></div>
+                                <div class="flex-1 bg-amber-500/60"></div>
+                                <div class="flex-1 bg-rose-500/70"></div>
+                                <div class="flex-1 bg-rose-600/80"></div>
+                            </div>
+                            <span>High (80)</span>
+                        </div>
+                    </div>
+
+                    <!-- Multi-Channel Dispatch Toggles -->
+                    <div class="sentient-card p-5">
+                        <h4 class="font-bold text-white mb-3 flex items-center gap-2 text-sm">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-violet-400">
+                                <path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>
+                            </svg>
+                            Multi-Channel Dispatch Toggles (NHAA 14566)
+                        </h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900/50 cursor-pointer hover:bg-slate-800/50">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-mint-400"></span>
+                                    <span class="text-xs text-white">IVRS Automated Call (14566)</span>
+                                </div>
+                                <input type="checkbox" checked class="w-4 h-4 accent-cyan-500">
+                            </label>
+                            <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900/50 cursor-pointer hover:bg-slate-800/50">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                    <span class="text-xs text-white">SMS Check-In Reminder</span>
+                                </div>
+                                <input type="checkbox" checked class="w-4 h-4 accent-cyan-500">
+                            </label>
+                            <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900/50 cursor-pointer hover:bg-slate-800/50">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-violet-400"></span>
+                                    <span class="text-xs text-white">WhatsApp Bot Outreach</span>
+                                </div>
+                                <input type="checkbox" checked class="w-4 h-4 accent-cyan-500">
+                            </label>
+                            <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900/50 cursor-pointer hover:bg-slate-800/50">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+                                    <span class="text-xs text-white">Crisis Alert Broadcast</span>
+                                </div>
+                                <input type="checkbox" checked class="w-4 h-4 accent-cyan-500">
+                            </label>
+                            <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900/50 cursor-pointer hover:bg-slate-800/50">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                                    <span class="text-xs text-white">Tele-MANAS Auto-Referral (14416)</span>
+                                </div>
+                                <input type="checkbox" class="w-4 h-4 accent-cyan-500">
+                            </label>
+                        </div>
+                        <button onclick="triggerNHAAOutreach()" class="btn btn-sm bg-rose-dim text-rose-300 border border-rose-400/30 w-full mt-3">
+                            🚨 Trigger NHAA 14566 Broadcast
+                        </button>
+                    </div>
+
+                    <!-- Threat/Intimidation Stats -->
+                    <div class="sentient-card p-5">
+                        <h4 class="font-bold text-white mb-3 flex items-center gap-2 text-sm">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-rose-400">
+                                <path d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            </svg>
+                            Threat/Intimidation Triage (Statewide)
+                        </h4>
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div class="p-3 rounded-lg bg-rose-500/10 border border-rose-400/20 text-center">
+                                <div class="text-2xl font-black text-rose-300 font-mono">8</div>
+                                <div class="text-[10px] text-slate-400 font-mono mt-1">CRITICAL THREATS</div>
+                            </div>
+                            <div class="p-3 rounded-lg bg-amber-500/10 border border-amber-400/20 text-center">
+                                <div class="text-2xl font-black text-amber-300 font-mono">17</div>
+                                <div class="text-[10px] text-slate-400 font-mono mt-1">ELEVATED RISK</div>
+                            </div>
+                            <div class="p-3 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-center">
+                                <div class="text-2xl font-black text-cyan-300 font-mono">42</div>
+                                <div class="text-[10px] text-slate-400 font-mono mt-1">MONITORING</div>
+                            </div>
+                            <div class="p-3 rounded-lg bg-mint-500/10 border border-mint-400/20 text-center">
+                                <div class="text-2xl font-black text-mint-300 font-mono">68%</div>
+                                <div class="text-[10px] text-slate-400 font-mono mt-1">RESOLVED (30D)</div>
+                            </div>
+                        </div>
+                        <button onclick="dispatchStatewideAlert()" class="btn btn-sm bg-rose-dim text-rose-300 border border-rose-400/30 w-full">
+                            📡 Statewide Crisis Broadcast
+                        </button>
                     </div>
                 </div>
             </div>

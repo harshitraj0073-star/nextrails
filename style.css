@@ -2034,3 +2034,69 @@ section, div[id$="-view"] {
 #case-details.hidden {
   display: none !important;
 }
+
+/* SIH 26094: Patient DDS Gauge + Longitudinal Trend animations */
+#victim-longitudinal-canvas {
+  background: linear-gradient(180deg, rgba(3, 4, 10, 0.4) 0%, rgba(34, 211, 238, 0.04) 100%);
+  border-radius: 8px;
+}
+
+/* SIH 26094: Voice Check-in waveform glow */
+#voice-waveform-canvas {
+  background: radial-gradient(ellipse at center, rgba(34, 211, 238, 0.05) 0%, transparent 70%);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  box-shadow: 0 0 30px rgba(167, 139, 250, 0.05) inset;
+}
+
+/* SIH 26094: Sentiment tags styling */
+#sentiment-tags-container {
+  background: linear-gradient(135deg, rgba(3, 4, 10, 0.6) 0%, rgba(34, 211, 238, 0.04) 100%);
+  animation: sentiment-fade-in 600ms ease-out;
+}
+
+@keyframes sentiment-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* SIH 26094: Admin heatmap cells hover */
+.sentient-card .grid > div:hover {
+  transform: scale(1.05);
+  transition: transform 200ms ease-out;
+  cursor: pointer;
+  filter: brightness(1.2);
+}
+
+.sentient-card .grid > div {
+  transition: all 200ms ease-out;
+}
+
+/* SIH 26094: Enhanced multi-channel toggle */
+input[type="checkbox"] {
+  cursor: pointer;
+}
+
+/* SIH 26094: Threat/intimidation pulse */
+@keyframes threat-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.text-rose-400.animate-pulse,
+.bg-rose-600.animate-pulse {
+  animation: threat-pulse 1.5s ease-in-out infinite;
+}
+
+/* SIH 26094: Case milestone badge */
+.bg-rose-dim { background-color: rgba(255, 107, 107, 0.15); }
+
+/* SIH 26094: Admin district heatmap color scale */
+.heatmap-cell {
+  transition: transform 200ms ease-out, filter 200ms ease-out;
+}
+.heatmap-cell:hover {
+  transform: scale(1.1);
+  filter: brightness(1.3);
+  z-index: 10;
+  position: relative;
+}
