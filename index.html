@@ -40,7 +40,9 @@
     <!-- ===================================================================== -->
     <!-- SENTIENT NAVIGATION -->
     <!-- ===================================================================== -->
+    <!-- SIH 26094: Global Navigation — Fixed 3-Zone Layout -->
     <nav id="sentient-nav" class="sentient-nav transition-opacity duration-500">
+        <!-- Left: Brand -->
         <div class="nav-brand cursor-pointer" onclick="goBackToIntro()">
             <div class="nav-brand-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -51,33 +53,40 @@
             <span class="nav-brand-text text-white">NEXORA</span>
         </div>
 
+        <!-- Center: Back button slot -->
         <div id="nav-center" class="hidden md:flex items-center gap-1">
-            <!-- Back Button (shown when not on intro) -->
             <button id="nav-back-btn" onclick="goBackToIntro()" class="btn btn-ghost btn-sm mr-4 hidden">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
                 </svg>
                 <span>Back</span>
             </button>
-            <!-- Dynamic nav links populated by role -->
         </div>
 
-        <div class="flex items-center gap-4">
-            <div id="header-helplines" class="hidden sm:flex items-center gap-3 text-xs">
-                <a href="tel:14566" class="text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+        <!-- Right: Helplines + Actions (clean flex row) -->
+        <div class="flex items-center gap-3 md:gap-4">
+            <!-- Helplines Cluster -->
+            <div id="header-helplines" class="hidden lg:flex items-center gap-1 text-xs whitespace-nowrap">
+                <a href="tel:14566" class="text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1.5 pr-3 border-r border-white/10">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse shrink-0"></span>
                     NHAA 14566
                 </a>
-                <span class="text-slate-600">|</span>
-                <a href="tel:112" class="text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1">
-                    Emergency: 112
+                <a href="tel:112" class="text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1 px-3 border-r border-white/10">
+                    Emergency 112
                 </a>
-                <span class="text-slate-600">|</span>
-                <span class="text-slate-400">Tele-MANAS: <strong class="text-white">14416</strong></span>
+                <span class="text-slate-400 px-3">
+                    Tele-MANAS <strong class="text-white">14416</strong>
+                </span>
             </div>
 
+            <!-- Quick Exit Button (Stealth / Panic) -->
+            <button onclick="triggerQuickExit()" class="hidden sm:flex btn btn-sm bg-amber-dim text-amber-300 border border-amber-400/30 hover:bg-amber-500/30 items-center gap-1 shrink-0" title="Stealth Mode: Instantly mask session">
+                ⚡ Quick Exit
+            </button>
+
+            <!-- Language + Role Actions -->
             <div class="flex items-center gap-2">
-                <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-transparent text-xs text-slate-400 outline-none cursor-pointer border border-white/10 rounded-lg px-2 py-1">
+                <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-transparent text-xs text-slate-400 outline-none cursor-pointer border border-white/10 rounded-lg px-2 py-1 shrink-0">
                     <option value="en">EN</option>
                     <option value="hi">हिं</option>
                     <option value="bn">বা</option>
@@ -432,6 +441,10 @@
                     <button onclick="toggleBreathingModal()" class="btn btn-sm btn-secondary">
                         🌿 Breathe
                     </button>
+                    <!-- SIH 26094: Intimidation / Witness Tampering SOS -->
+                    <button onclick="triggerThreatReport()" class="btn btn-sm bg-rose-600/40 text-rose-300 border border-rose-400/40 hover:bg-rose-600/60 animate-pulse">
+                        🚨 Report Threat / Intimidation
+                    </button>
                 </div>
             </div>
 
@@ -577,14 +590,65 @@
                 </div>
 
                 <!-- Voice Controls -->
-                <div class="p-4 flex items-center gap-3">
+                <div class="p-4 flex flex-wrap items-center gap-3">
                     <button id="voice-record-btn" onclick="toggleVoiceRecording()" class="btn btn-sm bg-violet-dim text-violet-300 border border-violet-400/30 hover:bg-violet-900/50 flex items-center gap-2">
                         <span id="voice-record-icon">●</span> Record Voice
                     </button>
                     <button id="voice-simulate-btn" onclick="simulateVoiceCheckin()" class="btn btn-sm btn-secondary text-xs">
                         🔬 Simulate Analysis
                     </button>
-                    <span class="text-xs text-slate-500 ml-auto">or type in the chat above</span>
+                    <span class="text-xs text-slate-500 ml-auto hidden sm:block">or type in the chat above</span>
+                </div>
+
+                <!-- SIH 26094: Voice-Tone Acoustic Biometrics Telemetry Panel -->
+                <div id="acoustic-biometrics-panel" class="hidden px-4 pb-4 space-y-3">
+                    <h5 class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-violet-400">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        </svg>
+                        Acoustic Biometric Telemetry (Voice-Tone Analysis)
+                    </h5>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <!-- Vocal Pitch Jitter -->
+                        <div class="p-2.5 rounded-lg bg-slate-900/50 border border-slate-700/30 text-center">
+                            <div id="bio-jitter-value" class="text-lg font-black font-mono text-amber-300">--</div>
+                            <div class="text-[9px] text-slate-500 font-mono uppercase mt-0.5">Vocal Jitter (%)</div>
+                            <div id="bio-jitter-status" class="text-[9px] font-bold text-amber-400 mt-1">AWAITING</div>
+                        </div>
+                        <!-- Speech Latency -->
+                        <div class="p-2.5 rounded-lg bg-slate-900/50 border border-slate-700/30 text-center">
+                            <div id="bio-latency-value" class="text-lg font-black font-mono text-sky-300">--</div>
+                            <div class="text-[9px] text-slate-500 font-mono uppercase mt-0.5">Speech Latency</div>
+                            <div id="bio-latency-status" class="text-[9px] font-bold text-sky-400 mt-1">AWAITING</div>
+                        </div>
+                        <!-- Distress Probability -->
+                        <div class="p-2.5 rounded-lg bg-slate-900/50 border border-rose-500/30 text-center">
+                            <div id="bio-distress-value" class="text-lg font-black font-mono text-rose-300">--</div>
+                            <div class="text-[9px] text-slate-500 font-mono uppercase mt-0.5">Distress Probability</div>
+                            <div id="bio-distress-status" class="text-[9px] font-bold text-rose-400 mt-1">AWAITING</div>
+                        </div>
+                        <!-- Tremor Index -->
+                        <div class="p-2.5 rounded-lg bg-slate-900/50 border border-slate-700/30 text-center">
+                            <div id="bio-tremor-value" class="text-lg font-black font-mono text-violet-300">--</div>
+                            <div class="text-[9px] text-slate-500 font-mono uppercase mt-0.5">Tremor Index</div>
+                            <div id="bio-tremor-status" class="text-[9px] font-bold text-violet-400 mt-1">AWAITING</div>
+                        </div>
+                    </div>
+                    <!-- Acoustic frequency bars visualization -->
+                    <div class="relative p-3 rounded-lg bg-slate-950/50 border border-slate-800/50">
+                        <div class="text-[9px] text-slate-500 font-mono uppercase mb-2">Frequency Spectrum (Hz)</div>
+                        <div id="acoustic-frequency-bars" class="flex items-end gap-0.5 h-8">
+                            <!-- Bars injected by JS -->
+                            <div class="h-2 w-3 bg-slate-700 rounded-t"></div>
+                            <div class="h-4 w-3 bg-slate-700 rounded-t"></div>
+                            <div class="h-6 w-3 bg-slate-700 rounded-t"></div>
+                            <div class="h-3 w-3 bg-slate-700 rounded-t"></div>
+                            <div class="h-8 w-3 bg-slate-700 rounded-t"></div>
+                            <div class="h-5 w-3 bg-slate-700 rounded-t"></div>
+                            <div class="h-7 w-3 bg-slate-700 rounded-t"></div>
+                            <div class="h-2 w-3 bg-slate-700 rounded-t"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Sentiment Analysis Tags -->
@@ -799,18 +863,54 @@
         <!-- Main Content -->
         <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
 
-            <!-- Top Banner -->
-            <div class="px-6 py-4 border-b border-white/5 bg-slate-950/30 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl">🩺</span>
-                    <div>
-                        <h3 class="font-bold text-white">Clinical Intelligence Command</h3>
-                        <p class="text-xs text-slate-400">Real-time patient monitoring & intervention coordination</p>
+            <!-- Top Banner (3-Zone Flexbox Layout - SIH 26094 Header Repair) -->
+            <div id="monitor-top-banner" class="px-4 md:px-6 py-3 border-b border-white/5 bg-slate-950/30 flex items-center justify-between gap-4 relative z-10">
+                <!-- LEFT ZONE: Brand + Context -->
+                <div class="flex items-center gap-3 min-w-0 flex-shrink">
+                    <span class="text-2xl shrink-0">🩺</span>
+                    <div class="flex flex-col gap-0.5 min-w-0">
+                        <h3 class="font-bold text-white text-sm md:text-base whitespace-nowrap">Clinical Intelligence Command</h3>
+                        <p class="text-xs text-slate-400 whitespace-nowrap hidden sm:block">Real-time patient monitoring & intervention coordination</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="logoutToRoleSelection()" class="btn btn-sm btn-secondary">Switch Role</button>
-                    <button onclick="goBackToIntro()" class="btn btn-sm btn-ghost">Home</button>
+
+                <!-- CENTER ZONE: Session Status Badges -->
+                <div class="hidden lg:flex items-center gap-2 text-xs font-mono shrink-0">
+                    <span class="px-2.5 py-1 rounded-full bg-mint-500/15 text-mint-300 border border-mint-400/30 flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-mint-400 animate-pulse"></span>
+                        LIVE SESSION
+                    </span>
+                    <span id="header-active-cases" class="px-2.5 py-1 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-400/30">
+                        ACTIVE: <strong class="text-white">0</strong>
+                    </span>
+                    <span id="header-critical-cases" class="px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-300 border border-rose-400/30">
+                        CRITICAL: <strong class="text-white">0</strong>
+                    </span>
+                </div>
+
+                <!-- RIGHT ZONE: Helplines + Actions -->
+                <div class="flex items-center gap-2 md:gap-3 shrink-0">
+                    <!-- Helplines Cluster (hidden on small screens) -->
+                    <div class="hidden xl:flex items-center gap-2 text-xs whitespace-nowrap">
+                        <a href="tel:14566" class="text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1 pr-2 border-r border-white/10">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                            NHAA 14566
+                        </a>
+                        <a href="tel:112" class="text-rose-400 hover:text-rose-300 font-semibold pr-2 border-r border-white/10">
+                            112
+                        </a>
+                        <span class="text-slate-400 pr-2 border-r border-white/10">
+                            <span class="text-slate-500">TM:</span> <strong class="text-white">14416</strong>
+                        </span>
+                    </div>
+                    <!-- Quick Exit (Stealth / Panic) -->
+                    <button onclick="triggerQuickExit()" class="btn btn-sm bg-amber-dim text-amber-300 border border-amber-400/30 hover:bg-amber-500/30 flex items-center gap-1 shrink-0" title="Stealth Mode: Mask session and redirect to neutral portal">
+                        <span>⚡</span> <span class="hidden sm:inline">Quick Exit</span>
+                    </button>
+                    <!-- Switch Role -->
+                    <button onclick="logoutToRoleSelection()" class="btn btn-sm btn-secondary shrink-0" style="margin-left: 0.75rem;">Switch Role</button>
+                    <!-- Home (mobile only) -->
+                    <button onclick="goBackToIntro()" class="btn btn-sm btn-ghost shrink-0 lg:hidden">Home</button>
                 </div>
             </div>
 
@@ -1041,9 +1141,31 @@
                     </div>
                 </div>
 
-                <!-- Chart Area -->
+                <!-- Chart Area with AI Insight Banner -->
                 <div class="sentient-card p-6">
-                    <h4 class="font-bold text-white mb-4">Distress Trends</h4>
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <h4 class="font-bold text-white">Relief Disbursement vs. Distress Correlation</h4>
+                        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+                            <span class="text-slate-500 font-mono mr-1">FILTER:</span>
+                            <button onclick="filterReliefCorrelation('all')" id="relief-filter-all" class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 font-mono">ALL</button>
+                            <button onclick="filterReliefCorrelation('investigation')" id="relief-filter-investigation" class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-white/5 font-mono">Investigation</button>
+                            <button onclick="filterReliefCorrelation('trial')" id="relief-filter-trial" class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-white/5 font-mono">Trial</button>
+                            <button onclick="filterReliefCorrelation('rehabilitation')" id="relief-filter-rehabilitation" class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-white/5 font-mono">Rehabilitation</button>
+                        </div>
+                    </div>
+                    <!-- AI Predictive Insight Banner -->
+                    <div id="relief-ai-banner" class="mb-4 p-3 rounded-lg bg-gradient-to-r from-amber-900/30 to-rose-900/30 border border-amber-500/30 flex items-start gap-3">
+                        <div class="text-2xl shrink-0">🧠</div>
+                        <div class="flex-1">
+                            <div class="text-[10px] text-amber-300 font-mono uppercase tracking-wider mb-1">NEXORA Predictive AI Insight</div>
+                            <p class="text-sm text-slate-200 leading-relaxed">
+                                <strong>ANALYSIS:</strong> A 10-day delay in compensation disbursement correlates with a
+                                <span class="text-rose-300 font-bold">34% increase</span> in reported acute anxiety across
+                                <span class="text-amber-300 font-bold">Pune</span> and
+                                <span class="text-amber-300 font-bold">Nagpur</span> districts. Prioritize District Legal Services Authority (DLSA) payout cycles.
+                            </p>
+                        </div>
+                    </div>
                     <div class="h-64 bg-slate-900/50 rounded-xl flex items-center justify-center">
                         <canvas id="compensationRecoveryChart"></canvas>
                     </div>
@@ -2083,5 +2205,87 @@
             flex-shrink: 0;
         }
     </style>
+
+    <!-- SIH 26094: Stealth / Panic Mode Overlay (Quick Exit) -->
+    <div id="stealth-overlay" class="fixed inset-0 z-[9999] hidden flex-col items-center justify-center" style="background: #1a2a3a;">
+        <div class="text-center space-y-6 max-w-lg px-8">
+            <div class="text-6xl mb-4">🌤️</div>
+            <h1 class="text-2xl font-bold text-slate-800">Weather India</h1>
+            <p class="text-slate-600">Get the latest weather updates across India</p>
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="bg-white rounded-lg p-3 shadow-sm">
+                    <div class="text-2xl">☀️</div>
+                    <div class="text-sm font-semibold text-slate-800">Mumbai</div>
+                    <div class="text-xs text-slate-500">32°C</div>
+                </div>
+                <div class="bg-white rounded-lg p-3 shadow-sm">
+                    <div class="text-2xl">⛅</div>
+                    <div class="text-sm font-semibold text-slate-800">Delhi</div>
+                    <div class="text-xs text-slate-500">28°C</div>
+                </div>
+                <div class="bg-white rounded-lg p-3 shadow-sm">
+                    <div class="text-2xl">🌧️</div>
+                    <div class="text-sm font-semibold text-slate-800">Pune</div>
+                    <div class="text-xs text-slate-500">24°C</div>
+                </div>
+            </div>
+            <p class="text-xs text-slate-400 mt-4">Government of India — weather.gov.in</p>
+            <button onclick="exitStealthMode()" class="mt-4 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300 transition-colors">
+                Return to NEXORA
+            </button>
+        </div>
+    </div>
+
+    <!-- SIH 26094: Threat / Intimidation SOS Modal -->
+    <div id="threat-report-modal" class="fixed inset-0 z-[9999] hidden items-center justify-center" style="background: rgba(0,0,0,0.8);">
+        <div class="sentient-card max-w-lg w-full mx-4 p-6 border-2 border-rose-500/50">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-full bg-rose-600/30 border border-rose-500/50 flex items-center justify-center text-2xl animate-pulse">
+                    🚨
+                </div>
+                <div>
+                    <h3 class="font-bold text-white text-lg">Report Threat / Intimidation</h3>
+                    <p class="text-xs text-rose-300 font-mono">SIH 26094 — SC/ST Act SOP Compliance</p>
+                </div>
+            </div>
+            <p class="text-sm text-slate-300 mb-4">
+                Your safety is the priority. This will immediately flag your case for emergency protection and generate an incident ticket to the District Witness Protection Cell.
+            </p>
+            <div class="space-y-3 mb-5">
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Threat Type</label>
+                    <select id="threat-type-select" class="sentient-input sentient-select w-full">
+                        <option value="intimidation">Verbal Intimidation / Threats</option>
+                        <option value="witness_tampering">Witness Tampering</option>
+                        <option value="physical">Physical Assault / Violence</option>
+                        <option value="family_threat">Family / Community Threat</option>
+                        <option value="police_non_cooperation">Police Non-Cooperation</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Brief Description</label>
+                    <textarea id="threat-description-input" rows="3" placeholder="Describe the threat or intimidation incident..." class="sentient-input sentient-textarea w-full"></textarea>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="immediate-police" class="w-4 h-4 accent-rose-500">
+                    <label for="immediate-police" class="text-xs text-slate-300">Request immediate police protection (112 dispatch)</label>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="submitThreatReport()" class="btn bg-rose-600 hover:bg-rose-500 text-white flex-1 font-bold">
+                    🚨 Submit & Escalate
+                </button>
+                <button onclick="closeThreatReportModal()" class="btn btn-secondary flex-1">
+                    Cancel
+                </button>
+            </div>
+            <p class="text-[10px] text-slate-500 text-center mt-3">
+                Incident ticket will be auto-generated with timestamp and dispatched to DLSA + WCD Protection Cell
+            </p>
+        </div>
+    </div>
+
+    <!-- Sentient Core Animation Script -->
+    <script src="script.js"></script>
 </body>
 </html>

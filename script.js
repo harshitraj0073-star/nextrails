@@ -4767,6 +4767,276 @@ function triggerNHAAOutreach() {
     alert('🚨 NHAA 14566 BROADCAST INITIATED\n\nAutomated outreach dispatched via:\n• IVRS: 14566 emergency call chain\n• SMS: Daily check-in reminders\n• WhatsApp: Tele-MANAS bot outreach\n• Crisis: DLSA + WCD immediate notification\n\nAll district coordinators have been alerted.');
 }
 
+// ============================================================================
+// SIH 26094: STEALTH / PANIC QUICK EXIT MODE
+// ============================================================================
+let stealthModeActive = false;
+let stealthPreviousView = null;
+let stealthPreviousRole = null;
+
+function triggerQuickExit() {
+    if (typeof playHapticBeep === 'function') playHapticBeep(300, 'sine', 0.05);
+
+    // Save current state for return
+    stealthPreviousView = typeof getCurrentView === 'function' ? getCurrentView() : 'intro';
+    stealthPreviousRole = window.currentRole;
+
+    // Wipe sensitive session state (preserve only essential non-identifying state)
+    window.sessionSensitiveData = null;
+    window.currentVictimCheckIn = null;
+
+    // Show stealth overlay
+    stealthModeActive = true;
+    const overlay = document.getElementById('stealth-overlay');
+    if (overlay) {
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+    }
+
+    // Hide the real app
+    const appBody = document.getElementById('app-body');
+    if (appBody) appBody.style.visibility = 'hidden';
+}
+
+function exitStealthMode() {
+    stealthModeActive = false;
+    const overlay = document.getElementById('stealth-overlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('flex');
+    }
+
+    const appBody = document.getElementById('app-body');
+    if (appBody) appBody.style.visibility = 'visible';
+
+    if (typeof playHapticBeep === 'function') playHapticBeep(580, 'sine', 0.08);
+}
+
+// Esc key double-press handler
+let escLastPress = 0;
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const now = Date.now();
+        if (now - escLastPress < 600) {
+            // Double Esc within 600ms = stealth exit
+            triggerQuickExit();
+        }
+        escLastPress = now;
+    }
+});
+
+// ============================================================================
+// SIH 26094: THREAT / INTIMIDATION SOS TRIGGER (Victim Safety)
+// ============================================================================
+function triggerThreatReport() {
+    if (typeof playHapticBeep === 'function') playHapticBeep(960, 'square', 0.15);
+
+    const modal = document.getElementById('threat-report-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeThreatReportModal() {
+    if (typeof playHapticBeep === 'function') playHapticBeep(400, 'sine', 0.05);
+
+    const modal = document.getElementById('threat-report-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+function submitThreatReport() {
+    if (typeof playHapticBeep === 'function') playHapticBeep(820, 'triangle', 0.12);
+
+    const threatType = document.getElementById('threat-type-select')?.value || 'intimidation';
+    const description = document.getElementById('threat-description-input')?.value || '';
+    const policeCheck = document.getElementById('immediate-police')?.checked || false;
+
+    const timestamp = new Date().toISOString();
+    const ticketId = `TKT-${Date.now()}`;
+
+    // Log threat report
+    console.log('SIH 26094 THREAT REPORT:', {
+        ticketId,
+        timestamp,
+        type: threatType,
+        description,
+        policeDispatch: policeCheck,
+        channel: window.currentChannel || 'web'
+    });
+
+    // Auto-flag the current case if in counselor/admin view
+    if (selectedCaseId) {
+        const c = cases.find(x => x.caseId === selectedCaseId);
+        if (c) {
+            c.threatLevel = 'HIGH';
+            c.latestJournal = `[THREAT REPORT - ${threatType}]: ${description}`;
+            c.criticalFlags = c.criticalFlags || [];
+            c.criticalFlags.push({ ticketId, timestamp, type: threatType });
+            if (typeof renderDashboard === 'function') renderDashboard();
+        }
+    }
+
+    closeThreatReportModal();
+
+    if (policeCheck) {
+        alert(`🚨 INCIDENT TICKET #${ticketId} GENERATED\n\n🚔 Emergency 112 has been notified.\n📋 DLSA + WCD Protection Cell alerted.\n🛡️ District Witness Protection Cell activated.\n\nYour safety is our priority. Stay in a safe location.`);
+    } else {
+        alert(`🚨 INCIDENT TICKET #${ticketId} GENERATED\n\n📋 DLSA + WCD Protection Cell alerted.\n🛡️ District Witness Protection Cell activated.\n\nYour case has been flagged CRITICAL in the counselor triage queue.`);
+    }
+}
+
+// ============================================================================
+// SIH 26094: RELIEF DISBURSEMENT CORRELATION FILTERS
+// ============================================================================
+function filterReliefCorrelation(filter) {
+    if (typeof playHapticBeep === 'function') playHapticBeep(560, 'sine', 0.06);
+
+    // Update filter button states
+    ['all', 'investigation', 'trial', 'rehabilitation'].forEach(f => {
+        const btn = document.getElementById(`relief-filter-${f}`);
+        if (btn) {
+            if (f === filter) {
+                btn.className = 'px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 font-mono';
+            } else {
+                btn.className = 'px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-white/5 font-mono';
+            }
+        }
+    });
+
+    // Update AI insight banner text
+    const banner = document.getElementById('relief-ai-banner');
+    if (banner) {
+        const insights = {
+            all: {
+                text: `A 10-day delay in compensation disbursement correlates with a <span class="text-rose-300 font-bold">34% increase</span> in reported acute anxiety across <span class="text-amber-300 font-bold">Pune</span> and <span class="text-amber-300 font-bold">Nagpur</span> districts. Prioritize DLSA payout cycles.`,
+                icon: '🧠'
+            },
+            investigation: {
+                text: `During investigation phase, compensation delays of 7+ days correlate with <span class="text-rose-300 font-bold">28% increase</span> in intimidation reports across all districts. Immediate interim relief recommended.`,
+                icon: '🔍'
+            },
+            trial: {
+                text: `Trial phase victims show <span class="text-rose-300 font-bold">41% higher distress</span> when court hearing delays exceed 15 days. Cross-examination scheduling urgency correlated.`,
+                icon: '⚖️'
+            },
+            rehabilitation: {
+                text: `Rehabilitation phase victims with delayed compensation show <span class="text-rose-300 font-bold">22% slower recovery trajectory</span>. Livelihood restoration grants reduce distress by average 18 points.`,
+                icon: '🌿'
+            }
+        };
+        const insight = insights[filter] || insights.all;
+        banner.querySelector('div.text-2xl').textContent = insight.icon;
+        banner.querySelector('p').innerHTML = `<strong>ANALYSIS:</strong> ${insight.text}`;
+    }
+
+    // Re-render the chart if needed
+    if (typeof renderCompensationChart === 'function') {
+        renderCompensationChart(filter);
+    }
+}
+
+// ============================================================================
+// SIH 26094: VOICE-TONE ACOUSTIC BIOMETRICS TELEMETRY
+// ============================================================================
+function updateAcousticBiometrics() {
+    const panel = document.getElementById('acoustic-biometrics-panel');
+    if (panel) panel.classList.remove('hidden');
+
+    // Simulated acoustic metrics
+    const jitter = (1.2 + Math.random() * 2.5).toFixed(1);
+    const latency = Math.round(300 + Math.random() * 300);
+    const distress = Math.round(45 + Math.random() * 40);
+    const tremor = (0.5 + Math.random() * 2.0).toFixed(1);
+
+    const jitterEl = document.getElementById('bio-jitter-value');
+    const jitterStatus = document.getElementById('bio-jitter-status');
+    if (jitterEl) jitterEl.textContent = jitter + '%';
+    if (jitterStatus) {
+        jitterStatus.textContent = parseFloat(jitter) > 2.5 ? '⚠ HIGH' : parseFloat(jitter) > 1.8 ? 'Elevated' : 'Normal';
+        jitterStatus.className = `text-[9px] font-bold mt-1 ${parseFloat(jitter) > 2.5 ? 'text-rose-400' : parseFloat(jitter) > 1.8 ? 'text-amber-400' : 'text-mint-400'}`;
+    }
+
+    const latencyEl = document.getElementById('bio-latency-value');
+    const latencyStatus = document.getElementById('bio-latency-status');
+    if (latencyEl) latencyEl.textContent = latency + 'ms';
+    if (latencyStatus) {
+        latencyStatus.textContent = latency > 500 ? '⚠ Hesitant' : latency > 350 ? 'Moderate' : 'Normal';
+        latencyStatus.className = `text-[9px] font-bold mt-1 ${latency > 500 ? 'text-rose-400' : latency > 350 ? 'text-amber-400' : 'text-mint-400'}`;
+    }
+
+    const distressEl = document.getElementById('bio-distress-value');
+    const distressStatus = document.getElementById('bio-distress-status');
+    if (distressEl) distressEl.textContent = distress + '%';
+    if (distressStatus) {
+        distressStatus.textContent = distress > 70 ? '⚠ HIGH RISK' : distress > 45 ? 'Elevated' : 'Normal';
+        distressStatus.className = `text-[9px] font-bold mt-1 ${distress > 70 ? 'text-rose-400' : distress > 45 ? 'text-amber-400' : 'text-mint-400'}`;
+    }
+
+    const tremorEl = document.getElementById('bio-tremor-value');
+    const tremorStatus = document.getElementById('bio-tremor-status');
+    if (tremorEl) tremorEl.textContent = tremor;
+    if (tremorStatus) {
+        tremorStatus.textContent = parseFloat(tremor) > 1.8 ? '⚠ HIGH' : parseFloat(tremor) > 1.2 ? 'Elevated' : 'Normal';
+        tremorStatus.className = `text-[9px] font-bold mt-1 ${parseFloat(tremor) > 1.8 ? 'text-rose-400' : parseFloat(tremor) > 1.2 ? 'text-amber-400' : 'text-mint-400'}`;
+    }
+
+    // Update frequency spectrum bars
+    const container = document.getElementById('acoustic-frequency-bars');
+    if (container) {
+        const heights = [20, 40, 60, 35, 80, 55, 70, 25, 45, 65, 30, 50].map(h => Math.max(5, h + Math.random() * 30 - 15));
+        container.innerHTML = heights.map((h, i) => {
+            const color = h > 70 ? '#ff6b6b' : h > 50 ? '#fbbf24' : '#22d3ee';
+            return `<div class="w-3 rounded-t transition-all duration-200" style="height: ${h}%; background: ${color}; opacity: 0.8;"></div>`;
+        }).join('');
+    }
+}
+
+// Override simulateVoiceCheckin to also show acoustic biometrics
+const originalSimulateVoiceCheckin = simulateVoiceCheckin;
+simulateVoiceCheckin = function() {
+    originalSimulateVoiceCheckin.call(this);
+    setTimeout(updateAcousticBiometrics, 600);
+};
+
+// Override toggleVoiceRecording to show biometrics after stop
+const originalStopVoiceRecording = stopVoiceRecording;
+stopVoiceRecording = function() {
+    originalStopVoiceRecording.call(this);
+    setTimeout(updateAcousticBiometrics, 300);
+};
+
+// ============================================================================
+// SIH 26094: HEADER SESSION COUNTER UPDATES
+// ============================================================================
+function updateHeaderSessionCounters() {
+    const activeEl = document.getElementById('header-active-cases');
+    const criticalEl = document.getElementById('header-critical-cases');
+
+    const active = cases.length;
+    const critical = cases.filter(c => isHighThreatCase(c)).length;
+
+    if (activeEl) {
+        activeEl.innerHTML = `ACTIVE: <strong class="text-white">${active}</strong>`;
+    }
+    if (criticalEl) {
+        criticalEl.innerHTML = `CRITICAL: <strong class="text-white">${critical}</strong>`;
+        if (critical > 0) {
+            criticalEl.className = 'px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-300 border border-rose-400/30 animate-pulse';
+        }
+    }
+}
+
+// Update counters when dashboard renders
+const originalRenderDashboard = renderDashboard;
+renderDashboard = function() {
+    originalRenderDashboard.call(this);
+    updateHeaderSessionCounters();
+};
+
 function dispatchStatewideAlert() {
     if (typeof playHapticBeep === 'function') playHapticBeep(960, 'square', 0.15);
     alert('📡 STATEWIDE CRISIS BROADCAST DISPATCHED\n\nMaharashtra District Coordinators notified:\n• Pune (6 critical threats)\n• Nagpur (4 elevated risk)\n• Thane (8 monitoring)\n• All 36 districts on alert\n\n112 emergency services on standby.');
