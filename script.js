@@ -2060,6 +2060,16 @@ function switchView(viewName) {
         }
     }
 
+    // Show/hide global back button in nav
+    const navBackBtn = document.getElementById('nav-back-btn');
+    if (navBackBtn) {
+        if (viewName === 'intro') {
+            navBackBtn.classList.add('hidden');
+        } else {
+            navBackBtn.classList.remove('hidden');
+        }
+    }
+
     // View specific activations
     if (viewName === 'victim') {
         ['triage', 'analytics'].forEach(p => document.getElementById(`portal-tab-${p}`)?.classList.remove('active'));
@@ -2959,6 +2969,11 @@ function selectCase(caseId, shouldBeep = true) {
     // Auto-repair & score case in case it had undefined or NaN
     repairAndScoreCase(targetCase);
 
+    // Open full-page Patient History & Clinical Diagnostics Dossier
+    openPatientDossier(caseId);
+    return;
+
+    // === Legacy inline panel code below (kept as fallback) ===
     // Toggle Empty state vs Case details drawer
     const emptyState = document.getElementById('no-case-selected') || document.getElementById('case-details-empty');
     const details = document.getElementById('case-details');
@@ -3145,6 +3160,1190 @@ function closeCaseDetails() {
         details.classList.remove('flex');
     }
 }
+
+// ============================================================================
+// PATIENT HISTORY & CLINICAL DIAGNOSTICS DOSSIER
+// Multi-dimensional deep-dive patient intelligence view
+// ============================================================================
+
+// Patient notes storage (preserved with patient data)
+if (typeof window.patientDossierNotes === 'undefined') {
+    window.patientDossierNotes = {};
+}
+if (typeof window.patientActionLogs === 'undefined') {
+    window.patientActionLogs = {};
+}
+
+// Open full-page dossier for a patient
+function openPatientDossier(caseId) {
+    if (typeof playHapticBeep === 'function') playHapticBeep(820, 'sine', 0.1);
+    selectedCaseId = caseId;
+
+    const targetCase = cases.find(c => c.caseId === caseId);
+    if (!targetCase) {
+        console.warn('No case found for dossier:', caseId);
+        return;
+    }
+
+    // Repair & score to ensure data integrity
+    if (typeof repairAndScoreCase === 'function') repairAndScoreCase(targetCase);
+
+    // Hide all counselor view tabs
+    ['dashboard', 'nexora-ai', 'cases', 'alerts', 'analytics', 'reports', 'settings'].forEach(t => {
+        const pane = document.getElementById(`tab-pane-${t}`);
+        if (pane) pane.classList.add('hidden');
+    });
+
+    // Show dossier view
+    const dossier = document.getElementById('patient-dossier-view');
+    if (dossier) {
+        dossier.classList.remove('hidden');
+        // Scroll to top
+        const mainContent = dossier.closest('.flex-1') || dossier.parentElement;
+        if (mainContent) mainContent.scrollTop = 0;
+    }
+
+    // Populate dossier with patient data
+    populateDossier(targetCase);
+
+    // Render all visualizations
+    setTimeout(() => {
+        renderRadarChart(targetCase);
+        renderTimelineChart(targetCase);
+        renderGenogram(targetCase);
+        renderKnowledgeGraph(targetCase);
+        renderHistograms(targetCase);
+        renderNotesHistory(caseId);
+        renderActionLog(caseId);
+    }, 100);
+}
+
+// Close dossier and return to cases tab
+function closePatientDossier() {
+    if (typeof playHapticBeep === 'function') playHapticBeep(420, 'sine', 0.06);
+
+    // Hide dossier
+    const dossier = document.getElementById('patient-dossier-view');
+    if (dossier) dossier.classList.add('hidden');
+
+    // Show cases tab (the original triage feed)
+    if (typeof switchMonitorTab === 'function') {
+        switchMonitorTab('cases');
+    }
+
+    // Clear selected case
+    selectedCaseId = null;
+}
+
+// Populate dossier header and baseline info
+function populateDossier(c) {
+    // Header
+    const nameEl = document.getElementById('dossier-patient-name');
+    const metaEl = document.getElementById('dossier-patient-meta');
+    const badgeEl = document.getElementById('dossier-patient-badge');
+
+    if (nameEl) nameEl.textContent = c.victimName ? c.victimName : 'Anonymous Survivor';
+    if (metaEl) metaEl.textContent = `${c.caseId} • ${c.lineOfWork || 'Profession Confidential'} • ${c.phone || 'Contact Protected'}`;
+
+    // Risk badge
+    const latest = c.checkIns && c.checkIns.length > 0 ? c.checkIns[c.checkIns.length - 1] : null;
+    const score = latest && latest.ddiScore !== undefined ? latest.ddiScore : 0;
+    const risk = score >= 70 ? 'HIGH' : (score >= 40 ? 'MODERATE' : 'LOW');
+
+    if (badgeEl) {
+        if (risk === 'HIGH') {
+            badgeEl.className = 'px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30';
+            badgeEl.textContent = '🔴 HIGH RISK';
+        } else if (risk === 'MODERATE') {
+            badgeEl.className = 'px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30';
+            badgeEl.textContent = '🟡 ELEVATED';
+        } else {
+            badgeEl.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+            badgeEl.textContent = '🟢 STABLE';
+        }
+    }
+
+    // Baseline fields
+    const idEl = document.getElementById('dossier-id');
+    const intakeEl = document.getElementById('dossier-intake');
+    const workEl = document.getElementById('dossier-work');
+    const contactEl = document.getElementById('dossier-contact');
+    const stressEl = document.getElementById('dossier-stress');
+    const checkinsEl = document.getElementById('dossier-checkins');
+
+    if (idEl) idEl.textContent = c.caseId;
+    if (intakeEl) {
+        const ts = c.intakeTimestamp || c.timestamp || Date.now();
+        intakeEl.textContent = new Date(ts).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+    if (workEl) workEl.textContent = c.lineOfWork || 'Not specified';
+    if (contactEl) contactEl.textContent = c.phone || 'Protected';
+    if (stressEl) {
+        const stress = c.baselineStress || 'Moderate';
+        stressEl.textContent = stress;
+        stressEl.className = stress.toLowerCase().includes('high') || stress.toLowerCase().includes('severe')
+            ? 'text-rose-300 font-bold'
+            : stress.toLowerCase().includes('low') || stress.toLowerCase().includes('manageable')
+                ? 'text-emerald-300 font-bold'
+                : 'text-amber-300 font-bold';
+    }
+    if (checkinsEl) checkinsEl.textContent = (c.checkIns || []).length;
+
+    // Risk gauge
+    const gauge = document.getElementById('dossier-gauge');
+    const scoreEl = document.getElementById('dossier-score');
+    const labelEl = document.getElementById('dossier-risk-label');
+
+    if (gauge) {
+        const circumference = 251;
+        const offset = circumference - (circumference * score / 100);
+        gauge.style.strokeDashoffset = offset;
+        const strokeColor = score >= 70 ? '#ff6b6b' : (score >= 40 ? '#facc15' : '#34d399');
+        gauge.setAttribute('stroke', strokeColor);
+    }
+    if (scoreEl) scoreEl.textContent = score;
+    if (labelEl) {
+        if (score >= 70) {
+            labelEl.textContent = 'CRITICAL PRIORITY';
+            labelEl.className = 'text-sm font-bold text-rose-300 mt-4';
+        } else if (score >= 40) {
+            labelEl.textContent = 'ELEVATED DISTRESS';
+            labelEl.className = 'text-sm font-bold text-amber-300 mt-4';
+        } else {
+            labelEl.textContent = 'STABLE / LOW';
+            labelEl.className = 'text-sm font-bold text-emerald-300 mt-4';
+        }
+    }
+
+    // Narrative
+    const narrativeEl = document.getElementById('dossier-narrative');
+    if (narrativeEl) {
+        const narrative = buildClinicalNarrative(c);
+        narrativeEl.innerHTML = narrative;
+    }
+}
+
+// Build clinical narrative HTML
+function buildClinicalNarrative(c) {
+    const latest = c.checkIns && c.checkIns.length > 0 ? c.checkIns[c.checkIns.length - 1] : null;
+    const parts = [];
+
+    parts.push(`<p class="text-slate-300 leading-relaxed"><strong class="text-cyan-300">Reported Symptoms:</strong> ${c.reportedSymptoms || latest?.summary || 'No acute symptoms reported in latest check-in. Continue daily monitoring.'}</p>`);
+
+    parts.push(`<p class="text-slate-300 leading-relaxed"><strong class="text-cyan-300">Known Triggers:</strong> ${c.triggers || 'No specific triggers documented. Monitor for court-related anxiety patterns.'}</p>`);
+
+    if (c.priorIncidents && c.priorIncidents.length > 0) {
+        parts.push(`<p class="text-slate-300 leading-relaxed"><strong class="text-cyan-300">Prior Incidents:</strong> ${c.priorIncidents.join('; ')}</p>`);
+    }
+
+    if (latest && latest.journal) {
+        parts.push(`<div class="mt-3 p-3 rounded-lg bg-slate-800/50 border-l-2 border-cyan-400"><p class="text-xs text-slate-400 mb-1 font-mono uppercase tracking-wider">Latest Journal Entry</p><p class="text-slate-200 italic">"${latest.journal}"</p></div>`);
+    }
+
+    return parts.join('');
+}
+
+// Switch dossier tab
+function switchDossierTab(tabName) {
+    if (typeof playHapticBeep === 'function') playHapticBeep(580, 'sine', 0.05);
+
+    const tabs = ['radar', 'timeline', 'genogram', 'knowledge', 'histogram'];
+    tabs.forEach(t => {
+        const tab = document.getElementById(`dossier-tab-${t}`);
+        const content = document.getElementById(`dossier-content-${t}`);
+        if (t === tabName) {
+            if (tab) {
+                tab.classList.add('active');
+                tab.classList.remove('text-slate-400');
+                tab.classList.add('text-white');
+            }
+            if (content) content.classList.remove('hidden');
+        } else {
+            if (tab) {
+                tab.classList.remove('active');
+                tab.classList.remove('text-white');
+                tab.classList.add('text-slate-400');
+            }
+            if (content) content.classList.add('hidden');
+        }
+    });
+
+    // Re-render charts when tab is shown
+    setTimeout(() => {
+        const target = cases.find(c => c.caseId === selectedCaseId);
+        if (!target) return;
+        if (tabName === 'radar') renderRadarChart(target);
+        if (tabName === 'timeline') renderTimelineChart(target);
+        if (tabName === 'genogram') renderGenogram(target);
+        if (tabName === 'knowledge') renderKnowledgeGraph(target);
+        if (tabName === 'histogram') renderHistograms(target);
+    }, 50);
+}
+
+// Radar Chart (Affective Dimensionality)
+function renderRadarChart(c) {
+    const canvas = document.getElementById('radar-chart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const cx = W / 2, cy = H / 2;
+    const radius = Math.min(W, H) / 2 - 40;
+
+    // Compute metrics from patient data
+    const latest = c.checkIns && c.checkIns.length > 0 ? c.checkIns[c.checkIns.length - 1] : null;
+    const baseScore = latest && latest.ddiScore !== undefined ? latest.ddiScore : 50;
+
+    // Calculate 6 affective dimensions
+    const metrics = computeAffectiveDimensions(c, baseScore);
+
+    // Update side bars
+    const keys = ['anxiety', 'depressive', 'sleep', 'cognitive', 'social', 'resilience'];
+    const colorMap = {
+        anxiety: 'rose', depressive: 'purple', sleep: 'amber',
+        cognitive: 'sky', social: 'violet', resilience: 'emerald'
+    };
+    keys.forEach(k => {
+        const val = Math.round(metrics[k]);
+        const valEl = document.getElementById(`radar-val-${k}`);
+        const numEl = document.getElementById(`radar-num-${k}`);
+        if (valEl) valEl.style.width = val + '%';
+        if (numEl) numEl.textContent = val + '%';
+    });
+
+    // Clear canvas
+    ctx.clearRect(0, 0, W, H);
+
+    // Draw concentric grid (5 layers)
+    const layers = 5;
+    ctx.strokeStyle = 'rgba(34, 211, 238, 0.1)';
+    ctx.lineWidth = 1;
+    for (let i = 1; i <= layers; i++) {
+        const r = (radius / layers) * i;
+        ctx.beginPath();
+        for (let j = 0; j < 6; j++) {
+            const angle = (Math.PI * 2 * j) / 6 - Math.PI / 2;
+            const x = cx + Math.cos(angle) * r;
+            const y = cy + Math.sin(angle) * r;
+            if (j === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+    }
+
+    // Draw axis lines
+    ctx.strokeStyle = 'rgba(139, 92, 246, 0.15)';
+    for (let j = 0; j < 6; j++) {
+        const angle = (Math.PI * 2 * j) / 6 - Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);
+        ctx.stroke();
+    }
+
+    // Draw data polygon
+    const points = keys.map((k, j) => {
+        const angle = (Math.PI * 2 * j) / 6 - Math.PI / 2;
+        const r = (metrics[k] / 100) * radius;
+        return { x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r, label: k, value: metrics[k] };
+    });
+
+    // Filled gradient
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+    grad.addColorStop(0, 'rgba(34, 211, 238, 0.4)');
+    grad.addColorStop(1, 'rgba(139, 92, 246, 0.2)');
+
+    ctx.beginPath();
+    points.forEach((p, i) => {
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+    });
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Stroke
+    ctx.strokeStyle = 'rgba(34, 211, 238, 0.8)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Draw vertices with glow
+    points.forEach(p => {
+        // Outer glow
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(34, 211, 238, 0.3)';
+        ctx.fill();
+
+        // Core
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#67e8f9';
+        ctx.fill();
+    });
+
+    // Draw labels
+    const labels = ['ANXIETY', 'DEPRESSIVE', 'SLEEP', 'COGNITIVE', 'SOCIAL', 'RESILIENCE'];
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '10px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    points.forEach((p, j) => {
+        const angle = (Math.PI * 2 * j) / 6 - Math.PI / 2;
+        const lx = cx + Math.cos(angle) * (radius + 25);
+        const ly = cy + Math.sin(angle) * (radius + 25);
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText(labels[j], lx, ly);
+    });
+}
+
+// Compute affective dimensions from case data
+function computeAffectiveDimensions(c, baseScore) {
+    const latest = c.checkIns && c.checkIns.length > 0 ? c.checkIns[c.checkIns.length - 1] : null;
+    const allText = (c.checkIns || []).map(ci => (ci.journal || '') + ' ' + (ci.answers || []).map(a => a.text || a.answer || '').join(' ')).join(' ').toLowerCase();
+
+    const hasKeyword = (kw) => allText.includes(kw);
+    const keywordBoost = (count) => Math.min(30, count * 6);
+
+    let anxiety = baseScore * 0.9;
+    if (hasKeyword('panic') || hasKeyword('anxious') || hasKeyword('worry') || hasKeyword('scared')) anxiety += 10;
+    if (hasKeyword('fear') || hasKeyword('terrified')) anxiety += 15;
+
+    let depressive = baseScore * 0.7;
+    if (hasKeyword('hopeless') || hasKeyword('depressed') || hasKeyword('alone') || hasKeyword('crying')) depressive += 20;
+    if (hasKeyword('isolated') || hasKeyword('nobody')) depressive += 15;
+
+    let sleep = baseScore * 0.6;
+    if (hasKeyword('sleep') || hasKeyword('insomnia') || hasKeyword('nightmare')) sleep += 25;
+    if (hasKeyword('night') || hasKeyword('awake')) sleep += 10;
+
+    let cognitive = baseScore * 0.5;
+    if (hasKeyword('confused') || hasKeyword('memory') || hasKeyword('focus') || hasKeyword('concentrate')) cognitive += 15;
+
+    let social = baseScore * 0.4;
+    if (hasKeyword('alone') || hasKeyword('isolated') || hasKeyword('nobody') || hasKeyword('no one')) social += 30;
+    if (hasKeyword('boycott') || hasKeyword('avoid')) social += 15;
+
+    // Resilience is INVERSE - higher when other metrics are lower
+    let resilience = 100 - baseScore;
+    if (hasKeyword('hope') || hasKeyword('support') || hasKeyword('family') || hasKeyword('friend')) resilience += 15;
+    if (hasKeyword('strong') || hasKeyword('cope') || hasKeyword('manage')) resilience += 10;
+
+    return {
+        anxiety: Math.min(100, Math.max(5, anxiety)),
+        depressive: Math.min(100, Math.max(5, depressive)),
+        sleep: Math.min(100, Math.max(5, sleep)),
+        cognitive: Math.min(100, Math.max(5, cognitive)),
+        social: Math.min(100, Math.max(5, social)),
+        resilience: Math.min(100, Math.max(5, resilience))
+    };
+}
+
+// Timeline Chart (Longitudinal Pulse)
+function renderTimelineChart(c) {
+    const canvas = document.getElementById('timeline-chart');
+    if (!canvas) return;
+
+    const parent = canvas.parentElement;
+    if (parent) {
+        canvas.width = parent.clientWidth;
+        canvas.height = parent.clientHeight;
+    }
+
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Build timeline data from checkIns
+    const checkIns = c.checkIns || [];
+    const points = checkIns.length > 0 ? checkIns.map((ci, i) => ({
+        x: i,
+        distress: ci.ddiScore || 50,
+        grounding: ci.groundingAdherence || (100 - (ci.ddiScore || 50) * 0.7),
+        sleep: ci.sleepQuality || (60 + Math.random() * 30)
+    })) : generateSampleTimeline();
+
+    if (points.length < 2) {
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Insufficient data for longitudinal tracking', W / 2, H / 2);
+        return;
+    }
+
+    const padding = 40;
+    const chartW = W - padding * 2;
+    const chartH = H - padding * 2;
+
+    // Draw grid
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 5; i++) {
+        const y = padding + (chartH / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(W - padding, y);
+        ctx.stroke();
+    }
+
+    // Y-axis labels
+    ctx.fillStyle = '#64748b';
+    ctx.font = '9px JetBrains Mono';
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= 5; i++) {
+        const y = padding + (chartH / 5) * i;
+        const val = 100 - i * 20;
+        ctx.fillText(val + '', padding - 5, y + 3);
+    }
+
+    // Helper to draw smooth curve
+    function drawCurve(data, color, fillGradient) {
+        if (data.length < 2) return;
+
+        // Build points
+        const pts = data.map((d, i) => ({
+            x: padding + (chartW * i) / (data.length - 1),
+            y: padding + chartH - (d / 100) * chartH
+        }));
+
+        // Draw smooth curve using quadratic curves
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) {
+            const xc = (pts[i].x + pts[i - 1].x) / 2;
+            const yc = (pts[i].y + pts[i - 1].y) / 2;
+            ctx.quadraticCurveTo(pts[i - 1].x, pts[i - 1].y, xc, yc);
+        }
+        ctx.quadraticCurveTo(pts[pts.length - 2].x, pts[pts.length - 2].y, pts[pts.length - 1].x, pts[pts.length - 1].y);
+
+        // Fill area
+        if (fillGradient) {
+            const linePath = ctx.path;
+            ctx.lineTo(pts[pts.length - 1].x, padding + chartH);
+            ctx.lineTo(pts[0].x, padding + chartH);
+            ctx.closePath();
+            ctx.fillStyle = fillGradient;
+            ctx.fill();
+            // Restore line
+            ctx.beginPath();
+            ctx.moveTo(pts[0].x, pts[0].y);
+            for (let i = 1; i < pts.length; i++) {
+                const xc = (pts[i].x + pts[i - 1].x) / 2;
+                const yc = (pts[i].y + pts[i - 1].y) / 2;
+                ctx.quadraticCurveTo(pts[i - 1].x, pts[i - 1].y, xc, yc);
+            }
+        }
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // Draw data points with glow
+        pts.forEach((p, idx) => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+            ctx.fillStyle = color.replace(')', ', 0.2)').replace('rgb', 'rgba');
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+        });
+    }
+
+    // Draw three curves
+    const distGrad = ctx.createLinearGradient(0, padding, 0, padding + chartH);
+    distGrad.addColorStop(0, 'rgba(255, 107, 107, 0.3)');
+    distGrad.addColorStop(1, 'rgba(255, 107, 107, 0.0)');
+
+    const groundGrad = ctx.createLinearGradient(0, padding, 0, padding + chartH);
+    groundGrad.addColorStop(0, 'rgba(52, 211, 153, 0.25)');
+    groundGrad.addColorStop(1, 'rgba(52, 211, 153, 0.0)');
+
+    const sleepGrad = ctx.createLinearGradient(0, padding, 0, padding + chartH);
+    sleepGrad.addColorStop(0, 'rgba(250, 204, 21, 0.25)');
+    sleepGrad.addColorStop(1, 'rgba(250, 204, 21, 0.0)');
+
+    drawCurve(points.map(p => p.distress), 'rgb(255, 107, 107)', distGrad);
+    drawCurve(points.map(p => p.grounding), 'rgb(52, 211, 153)', groundGrad);
+    drawCurve(points.map(p => p.sleep), 'rgb(250, 204, 21)', sleepGrad);
+
+    // X-axis labels (time points)
+    ctx.fillStyle = '#64748b';
+    ctx.font = '9px JetBrains Mono';
+    ctx.textAlign = 'center';
+    points.forEach((p, i) => {
+        if (i % Math.max(1, Math.floor(points.length / 6)) === 0) {
+            const x = padding + (chartW * i) / (points.length - 1);
+            const days = points.length > 6 ? ['W-6', 'W-5', 'W-4', 'W-3', 'W-2', 'W-1', 'Now'] : ['T1', 'T2', 'T3', 'T4', 'T5'];
+            ctx.fillText(days[Math.floor(i / Math.max(1, Math.floor(points.length / 7)))] || 'T' + (i + 1), x, H - 10);
+        }
+    });
+}
+
+function generateSampleTimeline() {
+    const points = [];
+    for (let i = 0; i < 7; i++) {
+        points.push({
+            distress: 40 + Math.sin(i * 0.8) * 25 + Math.random() * 10,
+            grounding: 50 + Math.cos(i * 0.6) * 20 + Math.random() * 8,
+            sleep: 60 + Math.sin(i * 0.5 + 1) * 15 + Math.random() * 10
+        });
+    }
+    return points;
+}
+
+// Genogram (Familial Network)
+function renderGenogram(c) {
+    const svg = document.getElementById('genogram-svg');
+    if (!svg) return;
+
+    const container = document.getElementById('genogram-container');
+    if (!container) return;
+
+    const W = container.clientWidth;
+    const H = container.clientHeight;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+    // Clear
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    // Define family members (genogram nodes)
+    const nodes = [
+        { id: 'patient', label: c.victimName || 'Patient', x: W / 2, y: H / 2 + 30, type: 'patient', gender: 'f' },
+        { id: 'spouse', label: 'Spouse', x: W / 2 - 100, y: H / 2 + 100, type: 'family', gender: 'm' },
+        { id: 'child1', label: 'Child 1', x: W / 2 - 50, y: H / 2 + 160, type: 'family', gender: 'f' },
+        { id: 'child2', label: 'Child 2', x: W / 2 + 30, y: H / 2 + 160, type: 'family', gender: 'm' },
+        { id: 'mother', label: 'Mother', x: W / 2 + 120, y: H / 2 - 30, type: 'family', gender: 'f' },
+        { id: 'father', label: 'Father', x: W / 2 + 200, y: H / 2 - 30, type: 'family', gender: 'm', estranged: true },
+        { id: 'sibling', label: 'Sibling', x: W / 2 - 150, y: H / 2 - 30, type: 'family', gender: 'm' },
+        { id: 'friend', label: 'Close Friend', x: W / 2 - 180, y: H / 2 + 50, type: 'support', gender: 'f' },
+        { id: 'lawyer', label: 'Legal Aid', x: W / 2 + 180, y: H / 2 + 80, type: 'support', gender: 'f' },
+        { id: 'accused', label: 'Accused Family', x: W / 2 + 220, y: H / 2 + 160, type: 'stressor', gender: 'm' }
+    ];
+
+    // Define relationships (from, to, type)
+    const relations = [
+        { from: 'patient', to: 'spouse', type: 'strong' },
+        { from: 'patient', to: 'child1', type: 'strong' },
+        { from: 'patient', to: 'child2', type: 'strong' },
+        { from: 'patient', to: 'mother', type: 'strong' },
+        { from: 'patient', to: 'father', type: 'estranged' },
+        { from: 'patient', to: 'sibling', type: 'moderate' },
+        { from: 'patient', to: 'friend', type: 'strong' },
+        { from: 'patient', to: 'lawyer', type: 'strong' },
+        { from: 'accused', to: 'patient', type: 'conflict' },
+        { from: 'spouse', to: 'child1', type: 'strong' },
+        { from: 'spouse', to: 'child2', type: 'strong' },
+        { from: 'mother', to: 'sibling', type: 'strong' }
+    ];
+
+    // Helper to get node
+    const getNode = (id) => nodes.find(n => n.id === id);
+
+    // Draw relations first (so nodes appear on top)
+    relations.forEach(rel => {
+        const from = getNode(rel.from);
+        const to = getNode(rel.to);
+        if (!from || !to) return;
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', from.x);
+        line.setAttribute('y1', from.y);
+        line.setAttribute('x2', to.x);
+        line.setAttribute('y2', to.y);
+        line.setAttribute('stroke-width', rel.type === 'strong' ? '2' : '1.5');
+        line.setAttribute('opacity', '0.6');
+
+        if (rel.type === 'strong') {
+            line.setAttribute('stroke', '#34d399');
+        } else if (rel.type === 'estranged') {
+            line.setAttribute('stroke', '#64748b');
+            line.setAttribute('stroke-dasharray', '4 4');
+        } else if (rel.type === 'conflict') {
+            line.setAttribute('stroke', '#ff6b6b');
+            line.setAttribute('stroke-dasharray', '6 2 2 2');
+            line.setAttribute('stroke-width', '2.5');
+        } else {
+            line.setAttribute('stroke', '#a78bfa');
+        }
+
+        svg.appendChild(line);
+    });
+
+    // Draw nodes
+    nodes.forEach(node => {
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('transform', `translate(${node.x}, ${node.y})`);
+
+        // Node shape based on gender
+        let shape;
+        if (node.type === 'patient') {
+            // Highlighted circle for patient
+            shape = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            shape.setAttribute('r', '32');
+            shape.setAttribute('fill', 'rgba(34, 211, 238, 0.2)');
+            shape.setAttribute('stroke', '#22d3ee');
+            shape.setAttribute('stroke-width', '3');
+            // Add glow
+            const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+            const id = 'glow-' + node.id;
+            filter.setAttribute('id', id);
+            const blur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
+            blur.setAttribute('stdDeviation', '3');
+            blur.setAttribute('result', 'coloredBlur');
+            const merge = document.createElementNS('http://www.w3.org/2000/svg', 'feMerge');
+            const mn1 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
+            mn1.setAttribute('in', 'coloredBlur');
+            const mn2 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
+            mn2.setAttribute('in', 'SourceGraphic');
+            merge.appendChild(mn1);
+            merge.appendChild(mn2);
+            filter.appendChild(blur);
+            filter.appendChild(merge);
+            svg.appendChild(filter);
+            shape.setAttribute('filter', `url(#${id})`);
+        } else if (node.gender === 'm') {
+            shape = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            shape.setAttribute('x', '-22');
+            shape.setAttribute('y', '-22');
+            shape.setAttribute('width', '44');
+            shape.setAttribute('height', '44');
+            shape.setAttribute('rx', '4');
+            const color = node.type === 'support' ? '#34d399' : node.type === 'stressor' ? '#ff6b6b' : '#a78bfa';
+            shape.setAttribute('fill', color + '30');
+            shape.setAttribute('stroke', color);
+            shape.setAttribute('stroke-width', '2');
+        } else {
+            shape = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            shape.setAttribute('r', '22');
+            const color = node.type === 'support' ? '#34d399' : node.type === 'stressor' ? '#ff6b6b' : '#a78bfa';
+            shape.setAttribute('fill', color + '30');
+            shape.setAttribute('stroke', color);
+            shape.setAttribute('stroke-width', '2');
+        }
+
+        g.appendChild(shape);
+
+        // Label
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dy', '40');
+        text.setAttribute('fill', '#cbd5e1');
+        text.setAttribute('font-size', '10');
+        text.setAttribute('font-family', 'JetBrains Mono');
+        text.textContent = node.label;
+        g.appendChild(text);
+
+        // Type indicator
+        if (node.type === 'support') {
+            const icon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            icon.setAttribute('text-anchor', 'middle');
+            icon.setAttribute('dy', '5');
+            icon.setAttribute('fill', '#34d399');
+            icon.setAttribute('font-size', '14');
+            icon.textContent = '★';
+            g.appendChild(icon);
+        } else if (node.type === 'stressor') {
+            const icon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            icon.setAttribute('text-anchor', 'middle');
+            icon.setAttribute('dy', '5');
+            icon.setAttribute('fill', '#ff6b6b');
+            icon.setAttribute('font-size', '14');
+            icon.textContent = '⚠';
+            g.appendChild(icon);
+        }
+
+        svg.appendChild(g);
+    });
+}
+
+// Knowledge Graph (Semantic Trigger Mesh)
+function renderKnowledgeGraph(c) {
+    const svg = document.getElementById('knowledge-svg');
+    if (!svg) return;
+
+    const container = document.getElementById('knowledge-container');
+    if (!container) return;
+
+    const W = container.clientWidth;
+    const H = container.clientHeight;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    // Central patient node
+    const cx = W / 2;
+    const cy = H / 2;
+
+    // Cluster definitions
+    const clusters = [
+        {
+            name: 'Cognitive Triggers', color: '#22d3ee', icon: '🧠',
+            nodes: [
+                { label: 'Court Date', x: cx - 180, y: cy - 100 },
+                { label: 'Accused Threat', x: cx - 220, y: cy - 30 },
+                { label: 'Memory Flashback', x: cx - 180, y: cy + 60 }
+            ]
+        },
+        {
+            name: 'Coping Mechanisms', color: '#34d399', icon: '🤝',
+            nodes: [
+                { label: 'Family Support', x: cx + 180, y: cy - 100 },
+                { label: 'Breathing Exercise', x: cx + 220, y: cy - 30 },
+                { label: 'Counseling', x: cx + 180, y: cy + 60 }
+            ]
+        },
+        {
+            name: 'Medication/Therapy', color: '#a78bfa', icon: '💊',
+            nodes: [
+                { label: 'Tele-MANAS', x: cx - 100, y: cy - 150 },
+                { label: 'Sleep Aid', x: cx + 80, y: cy - 150 }
+            ]
+        },
+        {
+            name: 'Environmental', color: '#fbbf24', icon: '🌍',
+            nodes: [
+                { label: 'Home Safety', x: cx - 100, y: cy + 150 },
+                { label: 'Workplace Stress', x: cx + 80, y: cy + 150 }
+            ]
+        }
+    ];
+
+    // Draw connections from center to each node
+    clusters.forEach(cluster => {
+        cluster.nodes.forEach(node => {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', cx);
+            line.setAttribute('y1', cy);
+            line.setAttribute('x2', node.x);
+            line.setAttribute('y2', node.y);
+            line.setAttribute('stroke', cluster.color);
+            line.setAttribute('stroke-width', '1.5');
+            line.setAttribute('opacity', '0.4');
+            line.setAttribute('stroke-dasharray', '3 3');
+            svg.appendChild(line);
+        });
+    });
+
+    // Draw cluster labels
+    clusters.forEach(cluster => {
+        const avgX = cluster.nodes.reduce((sum, n) => sum + n.x, 0) / cluster.nodes.length;
+        const avgY = cluster.nodes.reduce((sum, n) => sum + n.y, 0) / cluster.nodes.length;
+
+        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        label.setAttribute('x', avgX);
+        label.setAttribute('y', avgY - 60);
+        label.setAttribute('text-anchor', 'middle');
+        label.setAttribute('fill', cluster.color);
+        label.setAttribute('font-size', '9');
+        label.setAttribute('font-family', 'JetBrains Mono');
+        label.setAttribute('font-weight', 'bold');
+        label.textContent = cluster.icon + ' ' + cluster.name.toUpperCase();
+        svg.appendChild(label);
+    });
+
+    // Draw nodes
+    clusters.forEach(cluster => {
+        cluster.nodes.forEach(node => {
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('transform', `translate(${node.x}, ${node.y})`);
+            g.style.cursor = 'pointer';
+
+            // Outer glow
+            const glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            glow.setAttribute('r', '20');
+            glow.setAttribute('fill', cluster.color);
+            glow.setAttribute('opacity', '0.1');
+            g.appendChild(glow);
+
+            // Main node
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('r', '14');
+            circle.setAttribute('fill', 'rgba(3, 4, 10, 0.9)');
+            circle.setAttribute('stroke', cluster.color);
+            circle.setAttribute('stroke-width', '2');
+            g.appendChild(circle);
+
+            // Label
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('dy', '30');
+            text.setAttribute('fill', '#cbd5e1');
+            text.setAttribute('font-size', '9');
+            text.setAttribute('font-family', 'JetBrains Mono');
+            text.textContent = node.label;
+            g.appendChild(text);
+
+            // Hover effect
+            g.addEventListener('mouseenter', () => {
+                circle.setAttribute('r', '18');
+                glow.setAttribute('r', '25');
+                glow.setAttribute('opacity', '0.3');
+            });
+            g.addEventListener('mouseleave', () => {
+                circle.setAttribute('r', '14');
+                glow.setAttribute('r', '20');
+                glow.setAttribute('opacity', '0.1');
+            });
+
+            svg.appendChild(g);
+        });
+    });
+
+    // Central patient node
+    const centerG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    centerG.setAttribute('transform', `translate(${cx}, ${cy})`);
+
+    const centerGlow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    centerGlow.setAttribute('r', '40');
+    centerGlow.setAttribute('fill', 'url(#centerGrad)');
+    centerGlow.setAttribute('opacity', '0.5');
+    centerG.appendChild(centerGlow);
+
+    // Add gradient defs
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+    grad.setAttribute('id', 'centerGrad');
+    grad.innerHTML = '<stop offset="0%" stop-color="#22d3ee" stop-opacity="0.8"/><stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>';
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+
+    const centerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    centerCircle.setAttribute('r', '28');
+    centerCircle.setAttribute('fill', 'rgba(34, 211, 238, 0.2)');
+    centerCircle.setAttribute('stroke', '#22d3ee');
+    centerCircle.setAttribute('stroke-width', '3');
+    centerG.appendChild(centerCircle);
+
+    const centerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    centerText.setAttribute('text-anchor', 'middle');
+    centerText.setAttribute('dy', '-5');
+    centerText.setAttribute('fill', '#ffffff');
+    centerText.setAttribute('font-size', '12');
+    centerText.setAttribute('font-family', 'JetBrains Mono');
+    centerText.setAttribute('font-weight', 'bold');
+    centerText.textContent = c.victimName ? c.victimName.substring(0, 12) : 'PATIENT';
+    centerG.appendChild(centerText);
+
+    const centerSub = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    centerSub.setAttribute('text-anchor', 'middle');
+    centerSub.setAttribute('dy', '10');
+    centerSub.setAttribute('fill', '#67e8f9');
+    centerSub.setAttribute('font-size', '9');
+    centerSub.setAttribute('font-family', 'JetBrains Mono');
+    centerSub.textContent = c.caseId;
+    centerG.appendChild(centerSub);
+
+    svg.appendChild(centerG);
+}
+
+// Histograms
+function renderHistograms(c) {
+    renderTimeHistogram(c);
+    renderSymptomHistogram(c);
+}
+
+function renderTimeHistogram(c) {
+    const canvas = document.getElementById('histogram-time');
+    if (!canvas) return;
+
+    const parent = canvas.parentElement;
+    canvas.width = parent.clientWidth - 32;
+    canvas.height = 200;
+
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Distress by time of day
+    const hours = ['12AM', '3AM', '6AM', '9AM', '12PM', '3PM', '6PM', '9PM'];
+    const data = [25, 65, 40, 30, 45, 70, 85, 75]; // Sample data
+
+    const padding = 30;
+    const barW = (W - padding * 2) / hours.length - 8;
+    const maxVal = 100;
+
+    // Grid
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = padding + ((H - padding * 2) / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(W - padding, y);
+        ctx.stroke();
+    }
+
+    // Bars
+    data.forEach((val, i) => {
+        const x = padding + i * ((W - padding * 2) / hours.length) + 4;
+        const barH = ((H - padding * 2) * val) / maxVal;
+        const y = H - padding - barH;
+
+        // Gradient
+        const grad = ctx.createLinearGradient(0, y, 0, H - padding);
+        if (val >= 70) {
+            grad.addColorStop(0, '#ff6b6b');
+            grad.addColorStop(1, 'rgba(255, 107, 107, 0.2)');
+        } else if (val >= 40) {
+            grad.addColorStop(0, '#fbbf24');
+            grad.addColorStop(1, 'rgba(251, 191, 36, 0.2)');
+        } else {
+            grad.addColorStop(0, '#22d3ee');
+            grad.addColorStop(1, 'rgba(34, 211, 238, 0.2)');
+        }
+
+        ctx.fillStyle = grad;
+        ctx.fillRect(x, y, barW, barH);
+
+        // Glow on top
+        ctx.fillStyle = val >= 70 ? '#ff6b6b' : val >= 40 ? '#fbbf24' : '#22d3ee';
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = 8;
+        ctx.fillRect(x, y, barW, 2);
+        ctx.shadowBlur = 0;
+
+        // Value on top
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '10px JetBrains Mono';
+        ctx.textAlign = 'center';
+        ctx.fillText(val + '', x + barW / 2, y - 5);
+
+        // Hour label
+        ctx.fillStyle = '#64748b';
+        ctx.fillText(hours[i], x + barW / 2, H - 10);
+    });
+}
+
+function renderSymptomHistogram(c) {
+    const canvas = document.getElementById('histogram-symptoms');
+    if (!canvas) return;
+
+    const parent = canvas.parentElement;
+    canvas.width = parent.clientWidth - 32;
+    canvas.height = 200;
+
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Horizontal symptom intensity
+    const symptoms = [
+        { label: 'Panic Episodes', value: 85 },
+        { label: 'Sleep Disruption', value: 78 },
+        { label: 'Hypervigilance', value: 92 },
+        { label: 'Social Avoidance', value: 65 },
+        { label: 'Intrusive Thoughts', value: 70 },
+        { label: 'Physical Aches', value: 45 }
+    ];
+
+    const padding = 30;
+    const rowH = (H - padding * 2) / symptoms.length;
+    const maxBarW = W - padding * 2 - 100;
+
+    symptoms.forEach((s, i) => {
+        const y = padding + i * rowH + rowH / 2;
+        const barW = (s.value / 100) * maxBarW;
+
+        // Label
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '10px JetBrains Mono';
+        ctx.textAlign = 'right';
+        ctx.fillText(s.label, padding + 90, y + 3);
+
+        // Bar background
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.fillRect(padding + 100, y - 6, maxBarW, 12);
+
+        // Bar
+        const grad = ctx.createLinearGradient(padding + 100, 0, padding + 100 + barW, 0);
+        if (s.value >= 70) {
+            grad.addColorStop(0, '#ff6b6b');
+            grad.addColorStop(1, '#ec4899');
+        } else if (s.value >= 40) {
+            grad.addColorStop(0, '#fbbf24');
+            grad.addColorStop(1, '#f59e0b');
+        } else {
+            grad.addColorStop(0, '#22d3ee');
+            grad.addColorStop(1, '#10b981');
+        }
+        ctx.fillStyle = grad;
+        ctx.fillRect(padding + 100, y - 6, barW, 12);
+
+        // Value
+        ctx.fillStyle = '#67e8f9';
+        ctx.textAlign = 'left';
+        ctx.fillText(s.value + '%', padding + 100 + barW + 5, y + 3);
+    });
+}
+
+// Render saved clinical notes
+function renderNotesHistory(caseId) {
+    const container = document.getElementById('notes-history');
+    if (!container) return;
+
+    const notes = window.patientDossierNotes[caseId] || [];
+    if (notes.length === 0) {
+        container.innerHTML = '<p class="text-sm text-slate-400 italic">No notes yet. Start documenting observations above.</p>';
+        return;
+    }
+
+    container.innerHTML = notes.map(n => `
+        <div class="p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
+            <div class="flex justify-between items-start mb-1">
+                <span class="text-xs text-cyan-300 font-mono">${n.author || 'Counselor'}</span>
+                <span class="text-xs text-slate-500">${new Date(n.timestamp).toLocaleString()}</span>
+            </div>
+            <p class="text-sm text-slate-300">${n.text}</p>
+        </div>
+    `).join('');
+}
+
+// Render action log
+function renderActionLog(caseId) {
+    const container = document.getElementById('action-log');
+    if (!container) return;
+
+    const logs = window.patientActionLogs[caseId] || [];
+    if (logs.length === 0) {
+        container.innerHTML = '<p class="text-sm text-slate-400 italic">No actions logged yet. Use action buttons above to log interventions.</p>';
+        return;
+    }
+
+    container.innerHTML = logs.map(l => `
+        <div class="flex items-start gap-3 p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
+            <div class="w-2 h-2 rounded-full ${l.severity === 'critical' ? 'bg-rose-400' : l.severity === 'high' ? 'bg-amber-400' : 'bg-cyan-400'} mt-1.5 flex-shrink-0"></div>
+            <div class="flex-1">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-sm font-semibold text-white">${l.action}</span>
+                    <span class="text-xs text-slate-500 font-mono">${new Date(l.timestamp).toLocaleString()}</span>
+                </div>
+                <p class="text-xs text-slate-400">${l.notes || ''}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Action handlers
+function saveClinicalNote() {
+    const textarea = document.getElementById('counselor-notes');
+    if (!textarea || !textarea.value.trim()) {
+        alert('Please enter a note before saving.');
+        return;
+    }
+    if (!selectedCaseId) return;
+
+    if (typeof playHapticBeep === 'function') playHapticBeep(700, 'sine', 0.08);
+
+    if (!window.patientDossierNotes[selectedCaseId]) {
+        window.patientDossierNotes[selectedCaseId] = [];
+    }
+    window.patientDossierNotes[selectedCaseId].push({
+        text: textarea.value.trim(),
+        author: 'Dr. Sarah Jenkins',
+        timestamp: Date.now()
+    });
+
+    textarea.value = '';
+    updateNotesCharCount();
+    renderNotesHistory(selectedCaseId);
+}
+
+function updateNotesCharCount() {
+    const textarea = document.getElementById('counselor-notes');
+    const counter = document.getElementById('notes-char-count');
+    if (textarea && counter) {
+        counter.textContent = textarea.value.length;
+    }
+}
+
+function dispatchCrisisEscalation() {
+    if (typeof playHapticBeep === 'function') playHapticBeep(900, 'square', 0.15);
+    if (!selectedCaseId) return;
+
+    if (!window.patientActionLogs[selectedCaseId]) {
+        window.patientActionLogs[selectedCaseId] = [];
+    }
+    window.patientActionLogs[selectedCaseId].push({
+        action: '🚨 Crisis Escalation Dispatched',
+        notes: 'Emergency 112 dispatch initiated. Police protection request sent.',
+        severity: 'critical',
+        timestamp: Date.now()
+    });
+
+    renderActionLog(selectedCaseId);
+    alert('🚨 Crisis Escalation Dispatched\n\nEmergency 112 has been notified. Police protection request sent to nearest station.');
+}
+
+function prescribeGrounding() {
+    if (typeof playHapticBeep === 'function') playHapticBeep(600, 'triangle', 0.1);
+    if (!selectedCaseId) return;
+
+    if (!window.patientActionLogs[selectedCaseId]) {
+        window.patientActionLogs[selectedCaseId] = [];
+    }
+    window.patientActionLogs[selectedCaseId].push({
+        action: '🌿 Grounding Module Prescribed',
+        notes: '4-7-8 breathing exercise and 5-4-3-2-1 grounding technique scheduled.',
+        severity: 'moderate',
+        timestamp: Date.now()
+    });
+
+    renderActionLog(selectedCaseId);
+    alert('🌿 Grounding Module Prescribed\n\n4-7-8 breathing exercise and 5-4-3-2-1 sensory grounding technique have been prescribed to the patient.');
+}
+
+function scheduleFollowUp() {
+    if (typeof playHapticBeep === 'function') playHapticBeep(580, 'sine', 0.08);
+    if (!selectedCaseId) return;
+
+    if (!window.patientActionLogs[selectedCaseId]) {
+        window.patientActionLogs[selectedCaseId] = [];
+    }
+    window.patientActionLogs[selectedCaseId].push({
+        action: '📅 Follow-Up Scheduled',
+        notes: '7-day follow-up session scheduled via Tele-MANAS.',
+        severity: 'moderate',
+        timestamp: Date.now()
+    });
+
+    renderActionLog(selectedCaseId);
+    alert('📅 Follow-Up Scheduled\n\n7-day follow-up session has been scheduled.');
+}
+
+function generateLegalBrief() {
+    if (typeof playHapticBeep === 'function') playHapticBeep(640, 'sine', 0.1);
+    if (!selectedCaseId) return;
+
+    if (!window.patientActionLogs[selectedCaseId]) {
+        window.patientActionLogs[selectedCaseId] = [];
+    }
+    window.patientActionLogs[selectedCaseId].push({
+        action: '📄 Legal Brief Generated',
+        notes: 'DLSA Vulnerability & Protection Assessment generated for court submission.',
+        severity: 'low',
+        timestamp: Date.now()
+    });
+
+    renderActionLog(selectedCaseId);
+    alert('📄 Legal Brief Generated\n\nDLSA Vulnerability & Protection Assessment has been generated.');
+}
+
+// Character count listener
+document.addEventListener('DOMContentLoaded', () => {
+    const textarea = document.getElementById('counselor-notes');
+    if (textarea) {
+        textarea.addEventListener('input', updateNotesCharCount);
+    }
+});
 
 
 
